@@ -37,46 +37,68 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center gap-4">
-        <Link href="/" className="text-2xl font-bold text-blue-900 hover:text-blue-800">
-          💻 DevFlow
+    <nav className="sticky top-0 z-50 bg-gradient-to-r from-blue-900 to-blue-800 shadow-lg border-b border-blue-700">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center gap-6">
+        {/* Logo */}
+        <Link 
+          href="/" 
+          className="flex items-center gap-2 text-2xl font-bold text-white hover:text-blue-100 transition-colors"
+        >
+          <span className="text-3xl">💻</span>
+          <span>DevFlow</span>
         </Link>
 
-        <input
-          type="text"
-          placeholder="Search questions..."
-          className="flex-1 max-w-xs px-3 py-2 border border-gray-300 rounded-md text-sm"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyPress={handleSearch}
-        />
+        {/* Search Bar */}
+        <div className="flex-1 max-w-md">
+          <input
+            type="text"
+            placeholder="Search questions..."
+            className="w-full px-4 py-2 rounded-lg bg-blue-50 text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white focus:bg-white transition-all"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleSearch}
+          />
+        </div>
 
-        <div className="flex gap-4 items-center">
+        {/* Right Menu */}
+        <div className="flex gap-3 items-center">
           {user ? (
             <>
-              <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                {user.username} (Rep: {user.reputation})
-              </span>
-              <Link href="/ask" className="text-blue-900 font-medium hover:underline">
+              <div className="bg-blue-700 px-3 py-1 rounded-full text-sm text-white">
+                <span className="font-medium">{user.username}</span>
+                <span className="ml-2 text-blue-100">⭐ {user.reputation}</span>
+              </div>
+              <Link 
+                href="/ask" 
+                className="text-white font-medium hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors"
+              >
                 📝 Ask
               </Link>
-              <Link href="/profile" className="text-blue-900 font-medium hover:underline">
+              <Link 
+                href="/profile" 
+                className="text-white font-medium hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors"
+              >
                 👤 Profile
               </Link>
               <button
                 onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700"
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
               >
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="text-blue-900 font-medium hover:underline">
+              <Link 
+                href="/login" 
+                className="text-white font-medium hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors"
+              >
                 Login
               </Link>
-              <Link href="/register" className="text-blue-900 font-medium hover:underline">
+              <Link 
+                href="/register" 
+                className="bg-white text-blue-900 font-medium px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+              >
                 Register
               </Link>
             </>
