@@ -1,11 +1,16 @@
-import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import api from '@/services/api';
 
 export default function Login() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -14,10 +19,46 @@ export default function Login() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Will connect to backend later
-    console.log('Login:', formData);
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await api.post('/auth/login', {
+        email: formData.email,
+        password: formData.password,
+      });
+
+      console.log('Login response:', response.data); // Debug log
+
+      const { token, _id, username, email, role, reputation } = response.data;
+
+      console.log('Token:', token);
+      console.log('Username:', username); // Debug log
+
+      // Create user object from response
+      const user = {
+        _id,
+        username,
+        email,
+        role,
+        reputation
+      };
+
+      // Store token and user in localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      console.log('Stored in localStorage:', localStorage.getItem('user')); // Debug log
+
+      // Redirect to home
+      router.push('/');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,8 +72,13 @@ export default function Login() {
             Sign in to your DevFlow account
           </p>
 
+          {error && (
+            <div className="bg-red-100 text-red-900 p-4 rounded-lg mb-6 text-sm">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email
@@ -48,7 +94,6 @@ export default function Login() {
               />
             </div>
 
-            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password
@@ -64,16 +109,15 @@ export default function Login() {
               />
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-blue-900 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-800 transition-colors mt-6"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:from-gray-400 disabled:to-gray-400"
             >
-              Sign In
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
-          {/* Divider */}
           <div className="mt-6 mb-6 relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
@@ -83,7 +127,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Register Link */}
           <p className="text-center text-gray-600">
             Don't have an account?{' '}
             <Link href="/register" className="text-blue-900 font-semibold hover:text-blue-800">

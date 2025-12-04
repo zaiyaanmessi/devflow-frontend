@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { questionAPI } from '@/services/api';
+import api from '@/services/api';
 
 export default function AskQuestion() {
   const router = useRouter();
@@ -25,17 +25,45 @@ export default function AskQuestion() {
     setError('');
 
     try {
-      const tags = formData.tags.split(',').map((tag) => tag.trim());
+      // Validate inputs
+      if (formData.title.length < 15) {
+        setError('Title must be at least 15 characters');
+        setLoading(false);
+        return;
+      }
 
-      // TODO: Uncomment when backend is ready
-      // const response = await questionAPI.create(formData.title, formData.body, tags);
-      // router.push(`/questions/${response.data._id}`);
+      if (formData.body.length < 20) {
+        setError('Details must be at least 20 characters');
+        setLoading(false);
+        return;
+      }
 
-      // FOR NOW: Mock
-      alert('Question will be posted when backend is ready!');
-      console.log('Submit:', formData, tags);
+      const tags = formData.tags
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
+
+      if (tags.length === 0) {
+        setError('Please add at least one tag');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Creating question with:', { title: formData.title, body: formData.body, tags });
+
+      const response = await api.post('/questions', {
+        title: formData.title,
+        body: formData.body,
+        tags,
+      });
+
+      console.log('Question created:', response.data);
+
+      // Redirect to the new question
+      router.push(`/questions/${response.data._id}`);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create question');
+      console.error('Error creating question:', err);
+      setError(err.response?.data?.error || err.message || 'Failed to create question');
     } finally {
       setLoading(false);
     }
@@ -50,7 +78,11 @@ export default function AskQuestion() {
             Be specific and imagine you're asking a colleague for help.
           </p>
 
-          {error && <div className="bg-red-100 text-red-900 p-4 rounded-lg mb-6">{error}</div>}
+          {error && (
+            <div className="bg-red-100 text-red-900 p-4 rounded-lg mb-6 border border-red-300">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
@@ -65,7 +97,9 @@ export default function AskQuestion() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">Minimum 15 characters</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.title.length}/15 characters minimum
+              </p>
             </div>
 
             {/* Body */}
@@ -79,6 +113,9 @@ export default function AskQuestion() {
                 className="w-full h-48 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.body.length}/20 characters minimum
+              </p>
             </div>
 
             {/* Tags */}
@@ -93,6 +130,7 @@ export default function AskQuestion() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">At least 1 tag required</p>
             </div>
 
             {/* Submit */}

@@ -1,101 +1,175 @@
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { User, Question } from '@/types';
+import api from '@/services/api';
+import StudentProfile from '@/components/Profile/StudentProfile';
+import ExpertProfile from '@/components/Profile/ExpertProfile';
+import AdminProfile from '@/components/Profile/AdminProfile';
 
-export default function UserProfile() {
+
+export default function Profile() {
   const router = useRouter();
   const { id } = router.query;
-  const [user, setUser] = useState<User | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [answers, setAnswers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
+  
+  // Edit state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ username: '', bio: '' });
+  const [isSaving, setIsSaving] = useState(false);
 
+  // Get current user from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          const user = JSON.parse(userData);
+          setCurrentUserId(user._id);
+          setCurrentUserRole(user.role);
+        } catch (err) {
+          console.error('Failed to parse user data:', err);
+        }
+      }
+    }
+  }, []);
+
+  // Fetch profile data when ID is available
   useEffect(() => {
     if (!id) return;
-
-    // TODO: Replace with actual API call
-    // const fetchUser = async () => {
-    //   const response = await userAPI.getProfile(id as string);
-    //   setUser(response.data);
-    //   const qResponse = await userAPI.getQuestions(id as string);
-    //   setQuestions(qResponse.data.questions);
-    // };
-
-    // MOCK DATA
-    setUser({
-      _id: id as string,
-      username: 'john_doe',
-      email: 'john@example.com',
-      reputation: 250,
-      role: 'user',
-      bio: 'Full stack developer with 5 years of experience',
-    });
-
-    setQuestions([
-      {
-        _id: '1',
-        title: 'How to use React hooks?',
-        body: '',
-        asker: null as any,
-        tags: ['react'],
-        votes: 12,
-        views: 150,
-        answers: 3,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ]);
-
-    setLoading(false);
+    fetchProfile();
   }, [id]);
 
-  if (loading) return <div className="text-center py-8">Loading...</div>;
-  if (!user) return <div className="text-center py-8">User not found</div>;
+  // Check if it's own profile
+  useEffect(() => {
+    if (user && currentUserId) {
+      setIsOwnProfile(user._id === currentUserId);
+    }
+  }, [user, currentUserId]);
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/users/${id}`);
+      setUser(response.data);
+      setUserRole(response.data.role);
+      setEditData({
+        username: response.data.username,
+        bio: response.data.bio || ''
+      });
+
+      // Fetch user's questions
+      const questionsRes = await api.get(`/users/${id}/questions`);
+      setQuestions(questionsRes.data.questions || []);
+
+      // Fetch user's answers
+      const answersRes = await api.get(`/users/${id}/answers`);
+      setAnswers(answersRes.data.answers || []);
+
+      setError('');
+    } catch (err: any) {
+      console.error('Error fetching profile:', err);
+      setError(err.response?.data?.error || 'Failed to load profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editData.username.trim()) {
+      setError('Username is required');
+      return;
+    }
+
+    setIsSaving(true);
+    setError('');
+
+    try {
+      const response = await api.put(`/users/${id}`, {
+        username: editData.username,
+        bio: editData.bio
+      });
+
+      setUser(response.data);
+      setIsEditing(false);
+    } catch (err: any) {
+      console.error('Error updating profile:', err);
+      setError(err.response?.data?.error || 'Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="max-w-4xl mx-auto text-center py-8">
+          <div className="text-lg text-gray-600">Loading profile...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="max-w-4xl mx-auto text-center py-8">
+          <div className="text-lg text-gray-600">User not found</div>
+          <Link href="/" className="text-blue-900 font-semibold hover:text-blue-700 mt-4 inline-block">
+            ← Back to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Common props for all profile views
+  const commonProps = {
+    user,
+    userRole,
+    currentUserId,
+    isOwnProfile,
+    questions,
+    answers,
+    isEditing,
+    setIsEditing,
+    editData,
+    setEditData,
+    isSaving,
+    error,
+    setError,
+    onUpdateProfile: handleUpdateProfile
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Profile Header */}
-        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">{user.username}</h1>
-            <p className="text-gray-600 mb-4">{user.bio || 'No bio'}</p>
-            <div className="flex gap-6 text-lg">
-              <div>
-                <span className="font-bold text-gray-900">⭐ {user.reputation}</span>
-                <p className="text-sm text-gray-600">Reputation</p>
-              </div>
-              <div>
-                <span className="font-bold text-gray-900">{questions.length}</span>
-                <p className="text-sm text-gray-600">Questions</p>
-              </div>
-            </div>
+        {error && (
+          <div className="bg-red-100 text-red-900 p-4 rounded-lg mb-6 border border-red-300">
+            {error}
           </div>
-        </div>
+        )}
 
-        {/* Questions */}
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Questions by {user.username}</h2>
-          {questions.length === 0 ? (
-            <p className="text-gray-600">No questions yet</p>
-          ) : (
-            <div className="space-y-4">
-              {questions.map((q) => (
-                <Link
-                  key={q._id}
-                  href={`/questions/${q._id}`}
-                  className="block p-4 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all"
-                >
-                  <h3 className="font-semibold text-blue-900 hover:text-blue-700 mb-2">{q.title}</h3>
-                  <div className="flex gap-4 text-sm text-gray-600">
-                    <span>👍 {q.votes} votes</span>
-                    <span>💬 {q.answers} answers</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+       {/* Route to appropriate profile view based on PROFILE OWNER's role */}
+       {userRole === 'admin' && (
+          <AdminProfile {...commonProps} />
+        )}
+
+        {userRole === 'expert' && (
+          <ExpertProfile {...commonProps} />
+        )}
+
+        {(!userRole || userRole === 'user') && (
+          <StudentProfile {...commonProps} />
+        )}
       </div>
     </div>
   );

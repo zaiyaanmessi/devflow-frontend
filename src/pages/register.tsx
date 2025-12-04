@@ -1,13 +1,18 @@
-import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import api from '@/services/api';
 
 export default function Register() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -16,14 +21,37 @@ export default function Register() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      setError('Passwords do not match');
       return;
     }
-    // Will connect to backend later
-    console.log('Register:', formData);
+
+    setLoading(true);
+
+    try {
+      const response = await api.post('/auth/register', {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      const { token, user } = response.data;
+
+      // Store token and user in localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      // Redirect to home
+      router.push('/');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,8 +65,13 @@ export default function Register() {
             Create your account and start contributing
           </p>
 
+          {error && (
+            <div className="bg-red-100 text-red-900 p-4 rounded-lg mb-6 text-sm">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Username */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Username
@@ -54,7 +87,6 @@ export default function Register() {
               />
             </div>
 
-            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email
@@ -70,7 +102,6 @@ export default function Register() {
               />
             </div>
 
-            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password
@@ -86,7 +117,6 @@ export default function Register() {
               />
             </div>
 
-            {/* Confirm Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Confirm Password
@@ -102,16 +132,15 @@ export default function Register() {
               />
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-blue-900 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-800 transition-colors mt-6"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:from-gray-400 disabled:to-gray-400"
             >
-              Create Account
+              {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
 
-          {/* Divider */}
           <div className="mt-6 mb-6 relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
@@ -121,7 +150,6 @@ export default function Register() {
             </div>
           </div>
 
-          {/* Login Link */}
           <p className="text-center text-gray-600">
             Already have an account?{' '}
             <Link href="/login" className="text-blue-900 font-semibold hover:text-blue-800">
