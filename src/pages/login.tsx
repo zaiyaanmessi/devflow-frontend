@@ -30,30 +30,13 @@ export default function Login() {
         password: formData.password,
       });
 
-      console.log('Login response:', response.data); // Debug log
-
       const { token, _id, username, email, role, reputation } = response.data;
+      const user = { _id, username, email, role, reputation };
 
-      console.log('Token:', token);
-      console.log('Username:', username); // Debug log
-
-      // Create user object from response
-      const user = {
-        _id,
-        username,
-        email,
-        role,
-        reputation
-      };
-
-      // Store token and user in localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
 
-      console.log('Stored in localStorage:', localStorage.getItem('user')); // Debug log
-
-      // Redirect to home
-      router.push('/');
+      router.push('/questions');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Login failed');
     } finally {
@@ -62,25 +45,69 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-xl p-8">
-          <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">
-            Welcome Back
-          </h1>
-          <p className="text-center text-gray-600 mb-8">
-            Sign in to your DevFlow account
+    <div className="min-h-screen bg-slate-900 flex">
+      {/* LEFT SIDE - Branding & Visual */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-cyan-600 to-blue-700 relative overflow-hidden items-center justify-center p-12">
+        {/* Animated background circles */}
+        <div className="absolute top-20 left-20 w-72 h-72 bg-cyan-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse delay-700"></div>
+        
+        {/* Content */}
+        <div className="relative z-10 text-white">
+          <h2 className="text-6xl font-extrabold mb-6 leading-tight">
+            Welcome to<br />CodeQ
+          </h2>
+          <p className="text-2xl text-cyan-100 mb-8 leading-relaxed">
+            Join thousands of developers asking questions and sharing knowledge.
           </p>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center text-2xl backdrop-blur-sm">
+                💡
+              </div>
+              <p className="text-lg text-cyan-50">Ask questions & get expert answers</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center text-2xl backdrop-blur-sm">
+                🚀
+              </div>
+              <p className="text-lg text-cyan-50">Build your developer reputation</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center text-2xl backdrop-blur-sm">
+                🎯
+              </div>
+              <p className="text-lg text-cyan-50">Connect with the community</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
+      {/* RIGHT SIDE - Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          {/* Floating Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-extrabold text-white mb-4">
+              Sign In
+            </h1>
+            <p className="text-slate-400 text-lg">
+              Continue your learning journey
+            </p>
+          </div>
+
+          {/* Error Message */}
           {error && (
-            <div className="bg-red-100 text-red-900 p-4 rounded-lg mb-6 text-sm">
-              {error}
+            <div className="bg-red-500/10 border-l-4 border-red-500 text-red-400 p-4 rounded-r-lg mb-6">
+              <p className="font-semibold">⚠️ {error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide">
                 Email
               </label>
               <input
@@ -88,14 +115,15 @@ export default function Login() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="you@example.com"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter your email"
+                className="w-full px-6 py-4 bg-slate-800/50 border-2 border-slate-700 rounded-xl text-white text-lg placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:bg-slate-800 transition-all backdrop-blur-sm"
                 required
               />
             </div>
 
+            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide">
                 Password
               </label>
               <input
@@ -103,36 +131,43 @@ export default function Login() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="••••••••"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter your password"
+                className="w-full px-6 py-4 bg-slate-800/50 border-2 border-slate-700 rounded-xl text-white text-lg placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:bg-slate-800 transition-all backdrop-blur-sm"
                 required
               />
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:from-gray-400 disabled:to-gray-400"
+              className="w-full py-5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xl font-bold rounded-xl hover:from-blue-400 hover:to-cyan-400 hover:shadow-2xl hover:shadow-cyan-500/40 transition-all duration-300 hover:scale-[1.02] disabled:from-slate-700 disabled:to-slate-700 disabled:cursor-not-allowed mt-8"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : (
+                'Sign In'
+              )}
             </button>
           </form>
 
-          <div className="mt-6 mb-6 relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or</span>
-            </div>
-          </div>
-
-          <p className="text-center text-gray-600">
-            Don't have an account?{' '}
-            <Link href="/register" className="text-blue-900 font-semibold hover:text-blue-800">
-              Sign up
-            </Link>
-          </p>
+          {/* Register Link */}
+<div className="mt-10 text-center">
+  <p className="text-slate-400 text-base mb-2">New to CodeQ?</p>
+  <Link 
+    href="/register" 
+    className="text-cyan-300 text-lg font-bold hover:text-cyan-200 transition-colors inline-block hover:scale-105 transition-transform"
+  >
+    Create an account →
+  </Link>
+</div>
+          {/* Back Link - REMOVED (not needed since / redirects here) */}
         </div>
       </div>
     </div>

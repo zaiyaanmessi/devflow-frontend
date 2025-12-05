@@ -14,7 +14,6 @@ export default function Navbar() {
     checkUserStatus();
   }, []);
 
-  // Check user status on every route change
   useEffect(() => {
     checkUserStatus();
   }, [router.asPath]);
@@ -26,11 +25,8 @@ export default function Navbar() {
       
       if (userData && token && userData !== 'undefined' && userData !== 'null') {
         try {
-          const parsedUser = JSON.parse(userData);
-          console.log('User found in navbar:', parsedUser.username, 'Role:', parsedUser.role);
-          setUser(parsedUser);
+          setUser(JSON.parse(userData));
         } catch (e) {
-          console.error('Failed to parse user:', e);
           setUser(null);
         }
       } else {
@@ -49,72 +45,64 @@ export default function Navbar() {
   if (!mounted) return null;
 
   return (
-    <nav className="sticky top-0 z-50 bg-white shadow-md border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-6 py-4">
-        <div className="flex justify-between items-center">
-          {/* Logo */}
-          <Link href="/" className="text-2xl font-bold text-blue-600">
-            DevFlow
+    <nav className="sticky top-0 z-40 bg-slate-800 border-b-2 border-slate-700 shadow-lg shadow-black/20">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center h-[72px]">
+          {/* Logo - Moved slightly to the right */}
+          <Link href="/questions" className="flex items-center navbar-logo">
+            <span className="text-cyan-400 font-extrabold text-2xl">CodeQ</span>
           </Link>
 
-          {/* Navigation */}
-          <div className="flex gap-6 items-center">
-            {user ? (
-              <>
-                <Link href="/ask" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">
-                  Ask
-                </Link>
-                <Link href={`/profile/${user._id}`} className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">
-                  Profile
-                </Link>
-                
-                {/* Admin Dashboard Link */}
-                {user.role === 'admin' && (
-                  <Link href="/admin" className="text-red-600 hover:text-red-700 font-semibold transition-colors bg-red-50 px-3 py-1 rounded">
-                    👨‍💼 Admin
-                  </Link>
-                )}
-                
-                {/* Expert Dashboard Link */}
-                {user.role === 'expert' && (
-                  <Link href="/expert" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors bg-purple-50 px-3 py-1 rounded">
-                    👨‍🏫 Expert
-                  </Link>
-                )}
-                
-                {/* User Info */}
-                <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg">
-                  <span className="text-gray-700 font-semibold">{user.username}</span>
-                  <span className={`text-xs font-semibold px-2 py-1 rounded ${
-                    user.role === 'admin' ? 'bg-red-100 text-red-900' :
-                    user.role === 'expert' ? 'bg-purple-100 text-purple-900' :
-                    'bg-blue-100 text-blue-900'
-                  }`}>
-                    {user.role === 'admin' ? '👨‍💼 Admin' : 
-                     user.role === 'expert' ? '👨‍🏫 Expert' : 
-                     '👤 Student'}
-                  </span>
-                </div>
-
-                {/* Logout Button */}
-                <button
-                  onClick={handleLogout}
-                  className="text-red-600 hover:text-red-700 font-semibold bg-red-50 px-4 py-2 rounded transition-colors hover:bg-red-100"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors px-4 py-2 rounded hover:bg-gray-100">
-                  Login
-                </Link>
-                <Link href="/register" className="bg-blue-600 text-white hover:bg-blue-700 font-semibold transition-colors px-4 py-2 rounded">
-                  Register
-                </Link>
-              </>
-            )}
+          {/* Center Search - Hidden on mobile */}
+          <div className="hidden md:flex md:flex-1 md:justify-center md:px-8">
+            <div className="w-full max-w-lg relative">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                className="w-full rounded-lg bg-slate-700/80 text-white placeholder:text-slate-400 text-sm border border-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/60 focus:border-cyan-500 transition search-bar-input"
+                placeholder="Search..."
+                type="search"
+              />
+            </div>
           </div>
+
+          {/* Right Actions - Right Aligned */}
+          {user && (
+            <div className="flex items-center gap-4 ml-auto">
+              {/* Ask Button - TEXT ONLY, NO BACKGROUND */}
+              <Link
+                href="/ask"
+                className="text-cyan-400 font-semibold hover:text-cyan-300 transition-colors hover:underline underline-offset-4"
+              >
+                Ask Question
+              </Link>
+
+              {/* Profile Link - PLAIN TEXT */}
+              <Link
+                href={`/profile/${user._id}`}
+                className="hidden sm:inline text-slate-300 hover:text-white transition-colors hover:underline underline-offset-4"
+              >
+                Profile
+              </Link>
+
+              {/* User Badge - LARGER, MORE READABLE */}
+              <div className="flex items-center gap-3 px-5 py-2.5 rounded-lg bg-slate-700/80 border border-slate-700 shadow-sm">
+                <span className="text-white text-base font-bold">{user.username}</span>
+                <span className="text-cyan-400 text-sm font-bold">⭐ {user.reputation || 0}</span>
+              </div>
+
+              {/* Logout - TEXT ONLY */}
+              <button
+                onClick={handleLogout}
+                className="text-red-400 font-semibold hover:text-red-300 transition-colors hover:underline underline-offset-4"
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </nav>

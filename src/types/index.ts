@@ -3,8 +3,11 @@ export interface User {
     username: string;
     email: string;
     reputation: number;
-    role: 'user' | 'admin';
+    role: 'user' | 'admin' | 'expert';
     bio?: string;
+    location?: string;
+    title?: string;
+    createdAt?: string;
   }
   
   export interface Question {

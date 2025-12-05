@@ -122,8 +122,8 @@ export default function AdminView({
 
       {/* Question Header */}
       <div className="flex justify-between items-start gap-4 mb-4">
-        <div className="flex-1">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">{question.title}</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2 break-words overflow-wrap-anywhere">{question.title}</h1>
           
           {/* Tags */}
           <div className="flex gap-2 mb-4 flex-wrap">
@@ -173,7 +173,19 @@ export default function AdminView({
 
       {/* Question Body */}
       <div className="prose max-w-none mb-6 text-gray-700 whitespace-pre-wrap">
-        {question.body}
+        <div 
+          dangerouslySetInnerHTML={{
+            __html: question.body
+              .replace(
+                /\[your image\]\((data:image\/[^)]+)\)/g,
+                '<a href="$1" target="_blank" rel="noopener noreferrer"><img src="$1" alt="your image" class="max-w-md rounded mt-2 mb-2 cursor-pointer" onclick="window.open(this.src, \'_blank\')" /></a>'
+              )
+              .replace(
+                /\[([^\]]+)\]\(([^)]+)\)/g,
+                '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-700 underline">$1</a>'
+              )
+          }}
+        />
       </div>
 
       {/* Vote Buttons */}
@@ -351,7 +363,20 @@ export default function AdminView({
                     </div>
 
                     {/* Answer Body */}
-                    <p className="text-gray-700 mb-4 whitespace-pre-wrap">{answer.body}</p>
+                    <p 
+                      className="text-gray-700 mb-4 whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{
+                        __html: answer.body
+                          .replace(
+                            /\[your image\]\((data:image\/[^)]+)\)/g,
+                            '<a href="$1" target="_blank" rel="noopener noreferrer"><img src="$1" alt="your image" class="max-w-md rounded mt-2 mb-2 cursor-pointer" onclick="window.open(this.src, \'_blank\')" /></a>'
+                          )
+                          .replace(
+                            /\[([^\]]+)\]\(([^)]+)\)/g,
+                            '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-700 underline">$1</a>'
+                          )
+                      }}
+                    />
 
                     {/* Answer Actions */}
                     <div className="flex gap-2 mb-4 flex-wrap">

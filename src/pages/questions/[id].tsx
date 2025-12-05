@@ -329,9 +329,9 @@ export default function QuestionDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="min-h-screen bg-slate-900 py-8 px-4">
         <div className="max-w-4xl mx-auto text-center py-8">
-          <div className="text-lg text-gray-600">Loading question...</div>
+          <div className="text-lg text-slate-400">Loading question...</div>
         </div>
       </div>
     );
@@ -339,11 +339,11 @@ export default function QuestionDetail() {
 
   if (!question) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="min-h-screen bg-slate-900 py-8 px-4">
         <div className="max-w-4xl mx-auto text-center py-8">
-          <div className="text-lg text-gray-600">Question not found</div>
-          <Link href="/" className="text-blue-900 font-semibold hover:text-blue-700 mt-4 inline-block">
-            ← Back to Home
+          <div className="text-lg text-slate-400">Question not found</div>
+          <Link href="/questions" className="text-cyan-400 font-semibold hover:text-cyan-300 mt-4 inline-block">
+            ← Back to Questions
           </Link>
         </div>
       </div>
@@ -381,30 +381,30 @@ export default function QuestionDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-slate-900">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-12">
         {error && (
-          <div className="bg-red-100 text-red-900 p-4 rounded-lg mb-6 border border-red-300">
-            {error}
+          <div className="bg-red-500/15 border-l-4 border-red-400 text-red-300 p-5 rounded-r-xl mb-6">
+            <p className="font-medium">{error}</p>
           </div>
         )}
 
         {isEditingQuestion ? (
-          <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+          <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-6 sm:p-8 mb-8">
             <form onSubmit={handleSaveQuestion}>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Question</h2>
+              <h2 className="text-2xl font-bold text-white mb-6">Edit Question</h2>
               <div className="space-y-4 mb-6">
                 <input
                   type="text"
                   value={editQuestionData.title}
                   onChange={(e) => setEditQuestionData({ ...editQuestionData, title: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   required
                 />
                 <textarea
                   value={editQuestionData.body}
                   onChange={(e) => setEditQuestionData({ ...editQuestionData, body: e.target.value })}
-                  className="w-full h-48 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-48 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   required
                 />
                 <input
@@ -412,21 +412,21 @@ export default function QuestionDetail() {
                   value={editQuestionData.tags}
                   onChange={(e) => setEditQuestionData({ ...editQuestionData, tags: e.target.value })}
                   placeholder="e.g., javascript, react"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
               <div className="flex gap-4">
                 <button
                   type="submit"
                   disabled={isSavingQuestion}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-semibold transition-colors disabled:bg-gray-400"
+                  className="bg-cyan-500 text-white px-6 py-3 rounded-lg hover:bg-cyan-400 font-semibold transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
                 >
                   {isSavingQuestion ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsEditingQuestion(false)}
-                  className="bg-gray-300 text-gray-900 px-6 py-2 rounded-lg hover:bg-gray-400 font-semibold"
+                  className="bg-slate-700 text-slate-300 px-6 py-3 rounded-lg hover:bg-slate-600 font-semibold transition-colors"
                 >
                   Cancel
                 </button>
@@ -434,27 +434,27 @@ export default function QuestionDetail() {
             </form>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+          <div className="bg-slate-800/50 border border-slate-700 rounded p-4 sm:p-6 mb-6">
             {currentUserRole === 'admin' && <AdminView {...commonProps} onDeleteAnyAnswer={handleDeleteAnyAnswer} />}
             {currentUserRole === 'expert' && <ExpertView {...commonProps} />}
             {(!currentUserRole || currentUserRole === 'user') && <StudentView {...commonProps} />}
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">Your Answer</h3>
+        <div className="bg-slate-800/50 border border-slate-700 rounded p-4 sm:p-6">
+          <h3 className="text-xl font-semibold text-white mb-4">Your Answer</h3>
           <form onSubmit={handleAddAnswer}>
             <textarea
               value={answerText}
               onChange={(e) => setAnswerText(e.target.value)}
               placeholder="Write your answer here..."
-              className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+              className="w-full h-40 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-4"
               required
             />
             <button
               type="submit"
               disabled={submitLoading}
-              className="bg-blue-900 text-white px-6 py-2 rounded-lg hover:bg-blue-800 font-semibold transition-colors disabled:bg-gray-400"
+              className="bg-cyan-500 text-white px-6 py-3 rounded-lg hover:bg-cyan-400 font-semibold transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
             >
               {submitLoading ? 'Posting...' : 'Post Answer'}
             </button>
