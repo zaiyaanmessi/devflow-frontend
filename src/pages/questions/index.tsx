@@ -9,6 +9,7 @@ import Sidebar from '@/components/Sidebar';
 
 export default function QuestionsPage() {
   const router = useRouter();
+  const { tag } = router.query;
   const [user, setUser] = useState<User | null>(null);
   const [mounted, setMounted] = useState(false);
   const [questions, setQuestions] = useState<any[]>([]);
@@ -18,6 +19,7 @@ export default function QuestionsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [filter, setFilter] = useState<'newest' | 'popular' | 'trending' | 'unanswered'>('newest');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const QUESTIONS_PER_PAGE = 10;
 
   useEffect(() => {
@@ -39,11 +41,20 @@ export default function QuestionsPage() {
     }
   }, [router]);
 
+  // Handle tag from URL query
+  useEffect(() => {
+    if (tag && typeof tag === 'string') {
+      setSelectedTag(tag);
+    } else {
+      setSelectedTag(null);
+    }
+  }, [tag]);
+
   useEffect(() => {
     if (mounted && user) {
       fetchQuestions();
     }
-  }, [page, mounted, user, filter]);
+  }, [page, mounted, user, filter, selectedTag]);
 
   const fetchQuestions = async () => {
     try {
@@ -52,6 +63,11 @@ export default function QuestionsPage() {
         page,
         limit: QUESTIONS_PER_PAGE,
       };
+
+      // Add tag filter if selected
+      if (selectedTag) {
+        params.tags = selectedTag;
+      }
 
       // Map filter to API sort parameter
       if (filter === 'unanswered') {
@@ -154,11 +170,30 @@ export default function QuestionsPage() {
         <div className="mb-8 sm:mb-12">
           <div className="flex items-center gap-4 sm:gap-6 mb-4 sm:mb-6">
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              {filter === 'newest' && 'Newest Questions'}
-              {filter === 'popular' && 'Active Questions'}
-              {filter === 'trending' && 'Trending Questions'}
-              {filter === 'unanswered' && 'Unanswered Questions'}
+              {selectedTag ? (
+                <>
+                  Questions tagged <span className="text-cyan-400">[{selectedTag}]</span>
+                </>
+              ) : (
+                <>
+                  {filter === 'newest' && 'Newest Questions'}
+                  {filter === 'popular' && 'Active Questions'}
+                  {filter === 'trending' && 'Trending Questions'}
+                  {filter === 'unanswered' && 'Unanswered Questions'}
+                </>
+              )}
             </h1>
+            {selectedTag && (
+              <button
+                onClick={() => {
+                  setSelectedTag(null);
+                  router.push('/questions', undefined, { shallow: true });
+                }}
+                className="ml-auto px-4 py-2 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 text-sm font-medium transition-colors"
+              >
+                Clear filter
+              </button>
+            )}
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
             <p className="text-xl font-normal text-gray-400 tracking-normal">
@@ -303,12 +338,18 @@ export default function QuestionsPage() {
                           {/* Tags */}
                           <div className="flex gap-2 flex-wrap">
                             {q.tags?.slice(0, 3).map((tag: string) => (
-                              <span
+                              <Link
                                 key={tag}
-                                className="bg-slate-700/50 text-slate-300 px-2.5 py-1 rounded text-xs font-normal hover:bg-slate-700 transition-colors cursor-default"
+                                href={`/questions?tag=${encodeURIComponent(tag)}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedTag(tag);
+                                  setPage(1);
+                                }}
+                                className="bg-slate-700/50 text-cyan-300 px-2.5 py-1 rounded text-xs font-normal hover:bg-cyan-500/20 hover:text-cyan-200 transition-colors"
                               >
                                 {tag}
-                              </span>
+                              </Link>
                             ))}
                             {q.tags?.length > 3 && (
                               <span className="text-slate-500 text-xs px-2.5 py-1">+{q.tags.length - 3} more</span>

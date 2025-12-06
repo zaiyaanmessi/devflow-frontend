@@ -16,6 +16,17 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle responses - DON'T auto-logout on 401
+// Let the component handle auth errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Just pass the error through, don't auto-clear auth
+    // Components will handle 401 errors appropriately
+    return Promise.reject(error);
+  }
+);
+
 // Auth endpoints
 export const authAPI = {
   register: (username: string, email: string, password: string) =>

@@ -9,6 +9,7 @@ interface AdminViewProps {
   questionComments: any[];
   answerComments: any;
   isQuestionAsker: boolean;
+  currentUserId: string | null;
   questionVote: 1 | -1 | 0;
   answerVotes: { [key: string]: 1 | -1 | 0 };
   
@@ -47,6 +48,7 @@ export default function AdminView({
   questionComments,
   answerComments,
   isQuestionAsker,
+  currentUserId,
   questionVote,
   answerVotes,
   onVoteQuestion,
@@ -77,41 +79,41 @@ export default function AdminView({
   return (
     <>
       {/* Admin Header with Moderation Controls */}
-      <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
-        <div className="flex justify-between items-center">
+      <div className="bg-red-500/10 border-l-4 border-red-500 p-4 mb-6 rounded-lg">
+        <div className="flex justify-between items-center flex-wrap gap-4">
           <div>
-            <h3 className="font-bold text-red-900 flex items-center gap-2">
+            <h3 className="font-bold text-red-300 flex items-center gap-2 flex-wrap">
               👨‍💼 Instructor/Admin View
               {isQuestionLocked && (
-                <span className="bg-red-200 text-red-900 px-2 py-1 rounded text-xs font-semibold">
+                <span className="bg-red-500/20 text-red-300 px-2 py-1 rounded text-xs font-semibold border border-red-500/50">
                   🔒 Locked
                 </span>
               )}
               {isQuestionPinned && (
-                <span className="bg-yellow-200 text-yellow-900 px-2 py-1 rounded text-xs font-semibold">
+                <span className="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded text-xs font-semibold border border-yellow-500/50">
                   📌 Pinned
                 </span>
               )}
             </h3>
-            <p className="text-sm text-red-800 mt-1">Full moderation controls enabled</p>
+            <p className="text-sm text-red-400 mt-1">Full moderation controls enabled</p>
           </div>
-          <div className="flex gap-2 flex-wrap justify-end">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={onLockQuestion}
-              className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
                 isQuestionLocked
-                  ? 'bg-red-600 text-white hover:bg-red-700'
-                  : 'bg-red-100 text-red-900 hover:bg-red-200'
+                  ? 'bg-red-500 text-white hover:bg-red-400'
+                  : 'bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/50'
               }`}
             >
               {isQuestionLocked ? '🔒 Unlock' : '🔒 Lock'}
             </button>
             <button
               onClick={onPinQuestion}
-              className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
                 isQuestionPinned
-                  ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                  : 'bg-yellow-100 text-yellow-900 hover:bg-yellow-200'
+                  ? 'bg-yellow-500 text-white hover:bg-yellow-400'
+                  : 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30 border border-yellow-500/50'
               }`}
             >
               {isQuestionPinned ? '📌 Unpin' : '📌 Pin'}
@@ -120,358 +122,383 @@ export default function AdminView({
         </div>
       </div>
 
-      {/* Question Header */}
-      <div className="flex justify-between items-start gap-4 mb-4">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2 break-words overflow-wrap-anywhere">{question.title}</h1>
-          
-          {/* Tags */}
-          <div className="flex gap-2 mb-4 flex-wrap">
-            {question.tags?.map((tag: string) => (
-              <span key={tag} className="bg-blue-100 text-blue-900 px-3 py-1 rounded text-sm font-medium">
-                {tag}
-              </span>
-            ))}
-          </div>
-          
-          {/* Question Meta Info */}
-          <div className="text-sm text-gray-600">
-            Asked by{' '}
-            <Link
-              href={`/profile/${question.asker._id}`}
-              className="text-blue-900 font-semibold hover:text-blue-700"
-            >
-              {question.asker.username}
-            </Link>
-            {' '}• {new Date(question.createdAt).toLocaleDateString()}
-            {' '}• {question.views} views
-          </div>
-        </div>
-
-        {/* Vote Count & Quick Actions */}
-        <div className="text-right">
-          <div className="text-2xl font-bold text-gray-900">{question.votes || 0}</div>
-          <div className="text-sm text-gray-600">votes</div>
-          
-          {/* Edit/Delete */}
-          <div className="flex gap-2 mt-4 justify-end">
+      {/* Question Section - Clearly Distinguished */}
+      <div className="bg-slate-800/60 border-2 border-cyan-500/30 rounded-xl p-8 mb-12 shadow-lg shadow-cyan-500/10">
+        <div className="flex gap-8">
+          {/* Left: Vote Column */}
+          <div className="flex flex-col items-center gap-3 min-w-[50px]">
             <button
-              onClick={onEditQuestion}
-              className="text-blue-600 hover:text-blue-800 font-semibold text-sm"
+              onClick={() => onVoteQuestion(1)}
+              className={`w-10 h-10 flex items-center justify-center rounded border transition-colors ${
+                questionVote === 1
+                  ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400'
+                  : 'bg-slate-700 border-slate-600 text-slate-400 hover:bg-slate-600'
+              }`}
             >
-              ✏️ Edit
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+              </svg>
             </button>
+            <div className="text-lg font-semibold text-slate-300">{question.votes || 0}</div>
             <button
-              onClick={onDeleteQuestion}
-              className="text-red-600 hover:text-red-800 font-semibold text-sm"
+              onClick={() => onVoteQuestion(-1)}
+              className={`w-10 h-10 flex items-center justify-center rounded border transition-colors ${
+                questionVote === -1
+                  ? 'bg-red-500/20 border-red-500 text-red-400'
+                  : 'bg-slate-700 border-slate-600 text-slate-400 hover:bg-slate-600'
+              }`}
             >
-              🗑️ Delete
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* Question Body */}
-      <div className="prose max-w-none mb-6 text-gray-700 whitespace-pre-wrap">
-        <div 
-          dangerouslySetInnerHTML={{
-            __html: question.body
-              .replace(
-                /\[your image\]\((data:image\/[^)]+)\)/g,
-                '<a href="$1" target="_blank" rel="noopener noreferrer"><img src="$1" alt="your image" class="max-w-md rounded mt-2 mb-2 cursor-pointer" onclick="window.open(this.src, \'_blank\')" /></a>'
-              )
-              .replace(
-                /\[([^\]]+)\]\(([^)]+)\)/g,
-                '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-700 underline">$1</a>'
-              )
-          }}
-        />
-      </div>
+          {/* Right: Question Content */}
+          <div className="flex-1 min-w-0">
+            {/* Question Title */}
+            <h1 className="text-3xl sm:text-4xl font-normal text-cyan-400 mb-6 leading-snug break-words overflow-wrap-anywhere">
+              {question.title}
+            </h1>
 
-      {/* Vote Buttons */}
-      <div className="flex gap-4 mb-6">
-        <button
-          onClick={() => onVoteQuestion(1)}
-          className={`px-4 py-2 rounded font-semibold transition-colors ${
-            questionVote === 1
-              ? 'bg-blue-500 text-white'
-              : 'bg-blue-100 text-blue-900 hover:bg-blue-200'
-          }`}
-        >
-          👍 Upvote
-        </button>
-        <button
-          onClick={() => onVoteQuestion(-1)}
-          className={`px-4 py-2 rounded font-semibold transition-colors ${
-            questionVote === -1
-              ? 'bg-red-500 text-white'
-              : 'bg-red-100 text-red-900 hover:bg-red-200'
-          }`}
-        >
-          👎 Downvote
-        </button>
-      </div>
-
-      {/* Question Comments */}
-      <div className="border-t pt-6 mt-6">
-        <h4 className="font-semibold text-gray-900 mb-3">
-          Comments ({questionComments.length})
-        </h4>
-        
-        {/* Comments List */}
-        <div className="space-y-3 mb-4">
-          {questionComments.map((comment: any) => (
-            <div
-              key={comment._id}
-              className="bg-gray-50 p-3 rounded border border-gray-200 hover:border-red-300 transition-colors"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <Link
-                    href={`/profile/${comment.author._id}`}
-                    className="text-blue-900 font-semibold text-sm hover:text-blue-700"
-                  >
-                    {comment.author.username}
-                  </Link>
-                  <p className="text-gray-700 text-sm mt-1">{comment.body}</p>
-                </div>
-                <button
-                  onClick={() => onDeleteComment(comment._id, 'question')}
-                  className="text-red-600 hover:text-red-800 text-xs font-semibold bg-red-50 px-2 py-1 rounded"
-                >
-                  Delete
-                </button>
-              </div>
+            {/* Question Meta */}
+            <div className="flex items-center gap-3 text-sm text-slate-400 mb-6 flex-wrap">
+              <span>Asked</span>
+              <span>{new Date(question.createdAt).toLocaleDateString()}</span>
+              <span>•</span>
+              <Link
+                href={`/profile/${question.asker._id}`}
+                className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium"
+              >
+                {question.asker.username}
+              </Link>
+              <span>•</span>
+              <span>{question.views || 0} views</span>
+              <span>•</span>
+              <button
+                onClick={onEditQuestion}
+                className="px-3 py-1.5 bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-medium transition-colors"
+              >
+                Edit
+              </button>
+              <button
+                onClick={onDeleteQuestion}
+                className="px-3 py-1.5 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg font-medium transition-colors"
+              >
+                Delete
+              </button>
             </div>
-          ))}
-        </div>
 
-        {/* Add Comment Form */}
-        <form onSubmit={onAddQuestionComment} className="flex gap-2">
-          <input
-            type="text"
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Add a comment..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-          />
-          <button
-            type="submit"
-            className="bg-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-red-700"
-          >
-            Comment
-          </button>
-        </form>
+            {/* Question Body */}
+            <div 
+              className="text-lg text-slate-300 mb-8 whitespace-pre-wrap leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: question.body
+                  .replace(
+                    /\[your image\]\((data:image\/[^)]+)\)/g,
+                    '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 hover:underline"><img src="$1" alt="your image" class="max-w-md rounded mt-2 mb-2 cursor-pointer" onclick="window.open(this.src, \'_blank\')" /></a>'
+                  )
+                  .replace(
+                    /\[([^\]]+)\]\(([^)]+)\)/g,
+                    '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 hover:underline">$1</a>'
+                  )
+              }}
+            />
+
+            {/* Tags */}
+            <div className="flex gap-2 flex-wrap mb-8">
+              {question.tags?.map((tag: string) => (
+                <span
+                  key={tag}
+                  className="bg-slate-700/50 text-cyan-300 px-2.5 py-1 rounded text-sm font-normal hover:bg-slate-700 transition-colors"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            {/* Question Comments - Clearly Distinguished as Subpart */}
+            <div className="bg-slate-900/50 border-l-4 border-slate-600 rounded-r-lg p-5 mt-8">
+              <h3 className="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wide">Comments</h3>
+              <div className="space-y-3 mb-4">
+                {questionComments.map((comment: any) => (
+                  <div key={comment._id} className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                    <div className="flex items-start gap-2">
+                      <Link
+                        href={`/profile/${comment.author._id}`}
+                        className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium text-sm flex-shrink-0"
+                      >
+                        {comment.author.username}
+                      </Link>
+                      <span className="text-slate-500">•</span>
+                      <span className="text-sm text-slate-300 flex-1">{comment.body}</span>
+                      <button
+                        onClick={() => onDeleteComment(comment._id, 'question')}
+                        className="text-red-400 hover:text-red-300 text-xs hover:underline flex-shrink-0"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <form onSubmit={onAddQuestionComment} className="flex gap-2">
+                <input
+                  type="text"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Add a comment..."
+                  className="flex-1 px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+                <button
+                  type="submit"
+                  className="bg-slate-700 text-slate-300 px-4 py-1.5 rounded text-sm font-medium hover:bg-slate-600 transition-colors"
+                >
+                  Add comment
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Answers Section */}
-      <div className="mt-12 space-y-4">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          {answers.length} Answer{answers.length !== 1 ? 's' : ''}
+      <div className="mt-12">
+        <h2 className="text-xl font-semibold text-white mb-6">
+          {answers.length} {answers.length === 1 ? 'Answer' : 'Answers'}
         </h2>
 
         {answers.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-6 text-center text-gray-600">
+          <div className="text-center py-8 text-slate-400">
             No answers yet. Be the first to answer!
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-8">
             {answers.map((answer: any) => (
               <div
                 key={answer._id}
-                className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${
-                  answer.isAccepted ? 'border-green-500' : 'border-gray-300'
-                } hover:shadow-lg transition-shadow`}
+                className={`flex gap-6 p-6 rounded-xl bg-slate-800/50 border-2 ${
+                  answer.isAccepted 
+                    ? 'bg-gradient-to-r from-green-500/20 via-green-500/15 to-slate-800/50 border-green-500 shadow-lg shadow-green-500/20' 
+                    : 'border-slate-700/50'
+                }`}
               >
-                {editingAnswerId === answer._id ? (
-                  // Edit Mode
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      onSaveAnswer(answer._id);
-                    }}
+                {/* Left: Vote Column */}
+                <div className="flex flex-col items-center gap-3 min-w-[50px]">
+                  <button
+                    onClick={() => onVoteAnswer(answer._id, 1)}
+                    className={`w-10 h-10 flex items-center justify-center rounded border transition-colors ${
+                      answerVotes[answer._id] === 1
+                        ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400'
+                        : 'bg-slate-700 border-slate-600 text-slate-400 hover:bg-slate-600'
+                    }`}
                   >
-                    <textarea
-                      value={editingAnswerText}
-                      onChange={(e) => setEditingAnswerText(e.target.value)}
-                      className="w-full h-32 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
-                      required
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        type="submit"
-                        disabled={isSavingAnswer}
-                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-semibold disabled:bg-gray-400"
-                      >
-                        {isSavingAnswer ? 'Saving...' : 'Save'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingAnswerText('')}
-                        className="bg-gray-300 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-400 font-semibold"
-                      >
-                        Cancel
-                      </button>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+                  <div className="text-lg font-semibold text-slate-300">{answer.votes || 0}</div>
+                  <button
+                    onClick={() => onVoteAnswer(answer._id, -1)}
+                    className={`w-10 h-10 flex items-center justify-center rounded border transition-colors ${
+                      answerVotes[answer._id] === -1
+                        ? 'bg-red-500/20 border-red-500 text-red-400'
+                        : 'bg-slate-700 border-slate-600 text-slate-400 hover:bg-slate-600'
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {answer.isAccepted && (
+                    <div className="mt-3 flex flex-col items-center">
+                      <div className="w-12 h-12 bg-green-500/30 border-2 border-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/30">
+                        <svg className="w-7 h-7 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span className="text-xs text-green-400 font-semibold mt-1">Accepted</span>
                     </div>
-                  </form>
-                ) : (
-                  // View Mode
-                  <>
-                    {/* Answer Header */}
-                    <div className="flex justify-between items-start mb-4">
+                  )}
+                </div>
+
+                {/* Right: Answer Content */}
+                <div className="flex-1 min-w-0">
+                  {/* Accepted Answer Badge */}
+                  {answer.isAccepted && (
+                    <div className="mb-4 flex items-center gap-2 bg-green-500/20 border-l-4 border-green-500 rounded-lg px-4 py-3">
+                      <svg className="w-6 h-6 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
                       <div>
-                        {answer.isAccepted && (
-                          <p className="text-sm font-semibold text-green-600 mb-2">
-                            ✓ Accepted Answer
-                          </p>
-                        )}
+                        <span className="text-green-400 font-bold text-lg">Accepted Answer</span>
+                        <p className="text-green-300/80 text-sm mt-0.5">This answer has been marked as the solution to the question</p>
+                      </div>
+                    </div>
+                  )}
+                  {editingAnswerId === answer._id ? (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        onSaveAnswer(answer._id);
+                      }}
+                    >
+                      <textarea
+                        value={editingAnswerText}
+                        onChange={(e) => setEditingAnswerText(e.target.value)}
+                        className="w-full h-40 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-4"
+                        required
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="submit"
+                          disabled={isSavingAnswer}
+                          className="bg-cyan-500 text-white px-4 py-2 rounded-lg hover:bg-cyan-400 font-medium disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {isSavingAnswer ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingAnswerText('')}
+                          className="bg-slate-700 text-slate-300 px-4 py-2 rounded-lg hover:bg-slate-600 font-medium transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <>
+                      {/* Answer Meta */}
+                      <div className="flex items-center gap-3 text-sm text-slate-400 mb-4 flex-wrap">
+                        <span>Answered</span>
+                        <span>{new Date(answer.createdAt).toLocaleDateString()}</span>
+                        <span>•</span>
                         <Link
                           href={`/profile/${answer.answerer._id}`}
-                          className="text-blue-900 font-semibold hover:text-blue-700"
+                          className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium"
                         >
                           {answer.answerer.username}
                         </Link>
-                        <span className="text-gray-600 text-sm ml-2">
-                          ⭐ {answer.answerer.reputation}
-                        </span>
                         {answer.answerer.role && answer.answerer.role !== 'user' && (
-                          <span className={`ml-2 px-2 py-0.5 rounded text-xs font-semibold ${
-                            answer.answerer.role === 'expert' 
-                              ? 'bg-purple-100 text-purple-900'
-                              : 'bg-red-100 text-red-900'
-                          }`}>
-                            {answer.answerer.role === 'expert' ? '👨‍🏫 Expert' : '👨‍💼 Admin'}
-                          </span>
+                          <>
+                            <span>•</span>
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                              answer.answerer.role === 'expert' 
+                                ? 'bg-purple-500/20 text-purple-300'
+                                : 'bg-red-500/20 text-red-300'
+                            }`}>
+                              {answer.answerer.role === 'expert' ? '👨‍🏫 Expert' : '👨‍💼 Admin'}
+                            </span>
+                          </>
+                        )}
+                        {isQuestionAsker && !answer.isAccepted && (
+                          <>
+                            <span>•</span>
+                            <button
+                              onClick={() => onAcceptAnswer(answer._id)}
+                              className="px-3 py-1.5 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg font-medium transition-colors"
+                            >
+                              Accept
+                            </button>
+                          </>
+                        )}
+                        {currentUserId === answer.answerer._id && (
+                          <>
+                            <span>•</span>
+                            <button
+                              onClick={() => onEditAnswer(answer._id, answer.body)}
+                              className="px-3 py-1.5 bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-medium transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => onDeleteAnswer(answer._id)}
+                              className="px-3 py-1.5 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg font-medium transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
+                        {currentUserId !== answer.answerer._id && (
+                          <>
+                            <span>•</span>
+                            <button
+                              onClick={() => onDeleteAnyAnswer(answer._id)}
+                              className="px-3 py-1.5 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg font-medium transition-colors"
+                            >
+                              Delete (Admin)
+                            </button>
+                          </>
                         )}
                       </div>
 
-                      {/* Vote Count & Admin Actions */}
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-gray-900">
-                          {answer.votes || 0}
+                      {/* Answer Body */}
+                      <div 
+                        className="text-lg text-slate-300 mb-6 whitespace-pre-wrap leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: answer.body
+                            .replace(
+                              /\[your image\]\((data:image\/[^)]+)\)/g,
+                              '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 hover:underline"><img src="$1" alt="your image" class="max-w-md rounded mt-2 mb-2 cursor-pointer" onclick="window.open(this.src, \'_blank\')" /></a>'
+                            )
+                            .replace(
+                              /\[([^\]]+)\]\(([^)]+)\)/g,
+                              '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 hover:underline">$1</a>'
+                            )
+                        }}
+                      />
+
+                      {/* Answer Comments - Clearly Distinguished as Subpart */}
+                      <div className="bg-slate-900/50 border-l-4 border-slate-600 rounded-r-lg p-5 mt-6">
+                        <h3 className="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wide">Comments</h3>
+                        <div className="space-y-3 mb-4">
+                          {(answerComments[answer._id] || []).map((comment: any) => (
+                            <div key={comment._id} className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                              <div className="flex items-start gap-2">
+                                <Link
+                                  href={`/profile/${comment.author._id}`}
+                                  className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium text-sm flex-shrink-0"
+                                >
+                                  {comment.author.username}
+                                </Link>
+                                <span className="text-slate-500">•</span>
+                                <span className="text-sm text-slate-300 flex-1">{comment.body}</span>
+                                <button
+                                  onClick={() => onDeleteComment(comment._id, 'answer')}
+                                  className="text-red-400 hover:text-red-300 text-xs hover:underline flex-shrink-0"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <div className="text-sm text-gray-600">votes</div>
-                        
-                        {/* Admin Delete Button */}
-                        <button
-                          onClick={() => onDeleteAnyAnswer(answer._id)}
-                          className="text-red-600 hover:text-red-800 font-semibold text-xs mt-2 bg-red-50 px-2 py-1 rounded"
+                        <form
+                          onSubmit={(e) => onAddAnswerComment(answer._id, e)}
+                          className="flex gap-2"
                         >
-                          🗑️ Delete
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Answer Body */}
-                    <p 
-                      className="text-gray-700 mb-4 whitespace-pre-wrap"
-                      dangerouslySetInnerHTML={{
-                        __html: answer.body
-                          .replace(
-                            /\[your image\]\((data:image\/[^)]+)\)/g,
-                            '<a href="$1" target="_blank" rel="noopener noreferrer"><img src="$1" alt="your image" class="max-w-md rounded mt-2 mb-2 cursor-pointer" onclick="window.open(this.src, \'_blank\')" /></a>'
-                          )
-                          .replace(
-                            /\[([^\]]+)\]\(([^)]+)\)/g,
-                            '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-700 underline">$1</a>'
-                          )
-                      }}
-                    />
-
-                    {/* Answer Actions */}
-                    <div className="flex gap-2 mb-4 flex-wrap">
-                      <button
-                        onClick={() => onVoteAnswer(answer._id, 1)}
-                        className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
-                          answerVotes[answer._id] === 1
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-blue-100 text-blue-900 hover:bg-blue-200'
-                        }`}
-                      >
-                        👍 Upvote
-                      </button>
-                      <button
-                        onClick={() => onVoteAnswer(answer._id, -1)}
-                        className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
-                          answerVotes[answer._id] === -1
-                            ? 'bg-red-500 text-white'
-                            : 'bg-red-100 text-red-900 hover:bg-red-200'
-                        }`}
-                      >
-                        👎 Downvote
-                      </button>
-
-                      {/* Accept Answer Button (Only for Question Asker) */}
-                      {isQuestionAsker && !answer.isAccepted && (
-                        <button
-                          onClick={() => onAcceptAnswer(answer._id)}
-                          className="px-3 py-1 rounded text-sm font-semibold bg-green-100 text-green-900 hover:bg-green-200 transition-colors ml-auto"
-                        >
-                          ✓ Accept
-                        </button>
-                      )}
-                    </div>
-                  </>
-                )}
-
-                {/* Answer Comments with Moderation */}
-                <div className="border-t pt-4 mt-4">
-                  <h5 className="font-semibold text-gray-900 mb-3 text-sm">
-                    Comments ({(answerComments[answer._id] || []).length})
-                  </h5>
-
-                  {/* Comments List */}
-                  <div className="space-y-2 mb-3">
-                    {(answerComments[answer._id] || []).map((comment: any) => (
-                      <div
-                        key={comment._id}
-                        className="bg-gray-50 p-2 rounded border border-gray-200 hover:border-red-300 transition-colors"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="text-sm">
-                            <Link
-                              href={`/profile/${comment.author._id}`}
-                              className="text-blue-900 font-semibold text-xs hover:text-blue-700"
-                            >
-                              {comment.author.username}
-                            </Link>
-                            <p className="text-gray-700 text-xs mt-1">{comment.body}</p>
-                          </div>
+                          <input
+                            type="text"
+                            value={answerCommentText[answer._id] || ''}
+                            onChange={(e) =>
+                              setAnswerCommentText({
+                                ...answerCommentText,
+                                [answer._id]: e.target.value
+                              })
+                            }
+                            placeholder="Add a comment..."
+                            className="flex-1 px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                          />
                           <button
-                            onClick={() => onDeleteComment(comment._id, 'answer')}
-                            className="text-red-600 hover:text-red-800 text-xs font-semibold bg-red-50 px-1 py-0.5 rounded"
+                            type="submit"
+                            className="bg-slate-700 text-slate-300 px-4 py-1.5 rounded text-sm font-medium hover:bg-slate-600 transition-colors"
                           >
-                            Delete
+                            Add comment
                           </button>
-                        </div>
+                        </form>
                       </div>
-                    ))}
-                  </div>
-
-                  {/* Add Comment Form */}
-                  <form
-                    onSubmit={(e) => onAddAnswerComment(answer._id, e)}
-                    className="flex gap-2"
-                  >
-                    <input
-                      type="text"
-                      value={answerCommentText[answer._id] || ''}
-                      onChange={(e) =>
-                        setAnswerCommentText({
-                          ...answerCommentText,
-                          [answer._id]: e.target.value
-                        })
-                      }
-                      placeholder="Add a comment..."
-                      className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-red-500"
-                    />
-                    <button
-                      type="submit"
-                      className="bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-red-700"
-                    >
-                      Comment
-                    </button>
-                  </form>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

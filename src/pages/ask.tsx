@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import api from '@/services/api';
+import Sidebar from '@/components/Sidebar';
 import { MdFormatListNumbered, MdFormatListBulleted } from 'react-icons/md';
 
 interface AccordionSection {
@@ -576,27 +577,29 @@ export default function AskQuestion() {
       )}
 
       <div className="min-h-screen bg-slate-900">
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white">Ask question</h1>
+      <Sidebar />
+      <main className="main-with-sidebar !pl-[20rem] lg:!pl-[22rem] xl:!pl-[24rem]">
+      <div className="max-w-[1400px] mx-auto px-8 sm:px-12 md:px-16 lg:px-20 xl:px-24 py-12 sm:py-16 md:py-20">
+        <div className="mb-10 sm:mb-12">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white">Ask question</h1>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-10 sm:gap-12 md:gap-16">
           {/* Main Form Area - 70% */}
           <div className="lg:col-span-7">
             {error && (
-              <div className="bg-red-500/20 text-red-400 p-4 rounded mb-4 border border-red-500/50">
+              <div className="bg-red-500/20 text-red-400 p-6 rounded-lg mb-6 border-2 border-red-500/50 text-lg">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-10 sm:space-y-12">
               {/* Title */}
               <div>
-                <label className="block text-sm font-semibold text-white mb-1">
-                  Title<span className="text-red-400 ml-1">*</span>
+                <label className="block text-xl sm:text-2xl font-bold text-white mb-3">
+                  Title<span className="text-red-400 ml-2">*</span>
                 </label>
-                <p className="text-xs text-slate-400 mb-2">
+                <p className="text-base sm:text-lg text-slate-400 mb-4">
                   Be specific and imagine you're asking a question to another person. Min 15 characters.
                 </p>
                 <input
@@ -604,23 +607,23 @@ export default function AskQuestion() {
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500"
+                  className="w-full px-6 py-4 text-lg sm:text-xl bg-slate-800 border-2 border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   required
                 />
               </div>
 
               {/* Body */}
               <div>
-                <label className="block text-sm font-semibold text-white mb-1">
-                  Body<span className="text-red-400 ml-1">*</span>
+                <label className="block text-xl sm:text-2xl font-bold text-white mb-3">
+                  Body<span className="text-red-400 ml-2">*</span>
                 </label>
-                <p className="text-xs text-slate-400 mb-2">
+                <p className="text-base sm:text-lg text-slate-400 mb-4">
                   Include all the information someone would need to answer your question. Min 50 characters.
                 </p>
                 {/* Rich Text Editor Toolbar */}
-                <div className="flex items-center gap-1 mb-2 p-2 bg-slate-800 border border-slate-600 rounded-t">
+                <div className="flex items-center gap-2 mb-3 p-4 bg-slate-800 border-2 border-slate-600 rounded-t-lg">
                   <select 
-                    className="bg-slate-700 text-white text-xs px-2 py-1 rounded border border-slate-600 cursor-pointer"
+                    className="bg-slate-700 text-white text-base px-4 py-2 rounded-lg border-2 border-slate-600 cursor-pointer"
                     onChange={(e) => {
                       handleFormat(e.target.value);
                       e.target.value = 'normal';
@@ -632,81 +635,81 @@ export default function AskQuestion() {
                   <button 
                     type="button" 
                     onClick={() => handleFormat('bold')}
-                    className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors"
+                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
                     title="Bold"
                   >
-                    <span className="font-bold text-sm">B</span>
+                    <span className="font-bold text-lg">B</span>
                   </button>
                   <button 
                     type="button" 
                     onClick={() => handleFormat('italic')}
-                    className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors"
+                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
                     title="Italic"
                   >
-                    <span className="italic text-sm">I</span>
+                    <span className="italic text-lg">I</span>
                   </button>
                   <button 
                     type="button" 
                     onClick={() => handleFormat('strikethrough')}
-                    className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors"
+                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
                     title="Strikethrough"
                   >
-                    <span className="text-sm">/</span>
+                    <span className="text-lg">/</span>
                   </button>
                   <button 
                     type="button" 
                     onClick={() => handleFormat('strikethrough')}
-                    className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors"
+                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
                     title="Section"
                   >
-                    <span className="text-sm">§</span>
+                    <span className="text-lg">§</span>
                   </button>
-                  <div className="w-px h-6 bg-slate-600"></div>
+                  <div className="w-px h-8 bg-slate-600"></div>
                   <button 
                     type="button" 
                     onClick={() => handleFormat('code')}
-                    className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors"
+                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
                     title="Inline code"
                   >
-                    <span className="text-xs">&lt;&gt;</span>
+                    <span className="text-base">&lt;&gt;</span>
                   </button>
                   <button 
                     type="button" 
                     onClick={() => handleFormat('image')}
-                    className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors"
+                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
                     title="Insert image"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </button>
                   <button 
                     type="button" 
                     onClick={() => handleFormat('link')}
-                    className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors"
+                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
                     title="Insert link"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                     </svg>
                   </button>
                   <button 
                     type="button" 
                     onClick={() => handleFormat('blockquote')}
-                    className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors"
+                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
                     title="Blockquote"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                     </svg>
                   </button>
                   <button 
                     type="button" 
                     onClick={() => handleFormat('heading')}
-                    className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors"
+                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
                     title="Heading"
                   >
-                    <span className="text-sm font-bold">#</span>
+                    <span className="text-base font-bold">#</span>
                   </button>
                   <button 
                     type="button" 
@@ -714,10 +717,10 @@ export default function AskQuestion() {
                       e.preventDefault();
                       handleFormat('numbered-list');
                     }}
-                    className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors"
+                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
                     title="Numbered list"
                   >
-                    <MdFormatListNumbered className="w-4 h-4" />
+                    <MdFormatListNumbered className="w-5 h-5" />
                   </button>
                   <button 
                     type="button" 
@@ -725,29 +728,29 @@ export default function AskQuestion() {
                       e.preventDefault();
                       handleFormat('list');
                     }}
-                    className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors"
+                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
                     title="Bullet list"
                   >
-                    <MdFormatListBulleted className="w-4 h-4" />
+                    <MdFormatListBulleted className="w-5 h-5" />
                   </button>
-                  <div className="w-px h-6 bg-slate-600"></div>
+                  <div className="w-px h-8 bg-slate-600"></div>
                   <button 
                     type="button" 
                     onClick={() => handleFormat('hr')}
-                    className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors"
+                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
                     title="Horizontal rule"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                   </button>
                   <button 
                     type="button" 
                     onClick={() => handleFormat('codeblock')}
-                    className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors"
+                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
                     title="Code block"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                     </svg>
                   </button>
@@ -758,7 +761,7 @@ export default function AskQuestion() {
                   onInput={handleEditorChange}
                   onKeyDown={handleKeyDown}
                   suppressContentEditableWarning
-                  className="w-full min-h-[300px] px-3 py-2 bg-slate-800 border border-slate-600 border-t-0 rounded-b text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 resize-y text-sm"
+                  className="w-full min-h-[500px] sm:min-h-[600px] px-6 py-4 bg-slate-800 border-2 border-slate-600 border-t-0 rounded-b-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 resize-y text-lg sm:text-xl"
                   style={{ whiteSpace: 'pre-wrap' }}
                   data-placeholder="Include all the information someone would need to answer your question..."
                 />
@@ -766,10 +769,10 @@ export default function AskQuestion() {
 
               {/* Tags */}
               <div>
-                <label className="block text-sm font-semibold text-white mb-1">
-                  Tags<span className="text-red-400 ml-1">*</span>
+                <label className="block text-xl sm:text-2xl font-bold text-white mb-3">
+                  Tags<span className="text-red-400 ml-2">*</span>
                 </label>
-                <p className="text-xs text-slate-400 mb-2">
+                <p className="text-base sm:text-lg text-slate-400 mb-4">
                   Add up to 5 tags to describe what your question is about. Start typing to see suggestions.
                 </p>
                 <div className="relative">
@@ -779,10 +782,10 @@ export default function AskQuestion() {
                     value={formData.tags}
                     onChange={handleChange}
                     placeholder="e.g. (postgresql xml javascript)"
-                    className="w-full px-3 py-2 pl-8 bg-slate-800 border border-slate-600 rounded text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500"
+                    className="w-full px-6 py-4 pl-12 text-lg sm:text-xl bg-slate-800 border-2 border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                     required
                   />
-                  <svg className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
@@ -790,20 +793,20 @@ export default function AskQuestion() {
 
               {/* Select where to post */}
               <div>
-                <label className="block text-sm font-semibold text-white mb-1">
-                  Select where your question should be posted.<span className="text-red-400 ml-1">*</span>
+                <label className="block text-xl sm:text-2xl font-bold text-white mb-3">
+                  Select where your question should be posted.<span className="text-red-400 ml-2">*</span>
                 </label>
-                <select className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500">
-                  <option>Stack Overflow</option>
+                <select className="w-full px-6 py-4 text-lg sm:text-xl bg-slate-800 border-2 border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
+                  <option>Stack Overflow (External API)</option>
                 </select>
               </div>
 
               {/* Submit */}
-              <div className="pt-4">
+              <div className="pt-6">
                 <button
                   type="submit"
                   disabled={loading || formData.title.length < 15 || bodyLength < 50 || formData.tags.split(',').filter(t => t.trim().length > 0).length === 0}
-                  className="bg-cyan-500 text-white font-semibold py-2 px-4 rounded hover:bg-cyan-400 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  className="bg-cyan-500 text-white font-bold py-4 px-8 text-lg sm:text-xl rounded-lg hover:bg-cyan-400 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40"
                 >
                   {loading ? 'Posting...' : 'Post your question'}
                 </button>
@@ -814,25 +817,25 @@ export default function AskQuestion() {
           {/* Right Sidebar - 30% */}
           <div className="lg:col-span-3">
             <div>
-              <h2 className="text-base font-bold text-white mb-2">Draft your question</h2>
-              <p className="text-sm text-slate-400 mb-4">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">Draft your question</h2>
+              <p className="text-base sm:text-lg text-slate-400 mb-6">
                 The community is here to help you with specific coding, algorithm, or language problems.
               </p>
 
               {/* Accordion Sections */}
               <div className="space-y-0">
                 {accordionSections.map((section) => (
-                  <div key={section.id} className="border-b border-slate-700">
+                  <div key={section.id} className="border-b-2 border-slate-700">
                     <button
                       type="button"
                       onClick={() => toggleAccordion(section.id)}
-                      className="w-full flex items-center justify-between py-3 text-left"
+                      className="w-full flex items-center justify-between py-4 text-left"
                     >
-                      <span className={`text-sm font-medium ${section.isOpen ? 'text-cyan-400' : 'text-slate-400'}`}>
+                      <span className={`text-lg sm:text-xl font-semibold ${section.isOpen ? 'text-cyan-400' : 'text-slate-400'}`}>
                         {section.title}
                       </span>
                       <svg
-                        className={`w-4 h-4 text-slate-400 transition-transform ${section.isOpen ? 'rotate-180' : ''}`}
+                        className={`w-6 h-6 text-slate-400 transition-transform ${section.isOpen ? 'rotate-180' : ''}`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -841,10 +844,10 @@ export default function AskQuestion() {
                       </svg>
                     </button>
                     {section.isOpen && (
-                      <div className="pb-3 space-y-2">
+                      <div className="pb-4 space-y-3">
                         {section.content.map((item, index) => (
-                          <div key={index} className="flex items-start gap-2 text-sm text-slate-300">
-                            <span className="text-slate-500 mt-0.5">•</span>
+                          <div key={index} className="flex items-start gap-3 text-base sm:text-lg text-slate-300">
+                            <span className="text-slate-500 mt-1">•</span>
                             <span>{item}</span>
                           </div>
                         ))}
@@ -855,30 +858,30 @@ export default function AskQuestion() {
               </div>
 
               {/* Helpful links */}
-              <div className="mt-4 pt-4 border-t border-slate-700">
-                <h3 className="text-sm font-semibold text-white mb-2">Helpful links</h3>
-                <div className="space-y-1">
-                  <a href="#" className="block text-sm text-cyan-400 hover:text-cyan-300">
+              <div className="mt-6 pt-6 border-t-2 border-slate-700">
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Helpful links</h3>
+                <div className="space-y-2">
+                  <a href="#" className="block text-base sm:text-lg text-cyan-400 hover:text-cyan-300">
                     how to ask a good question here
                   </a>
-                  <a href="#" className="block text-sm text-cyan-400 hover:text-cyan-300">
+                  <a href="#" className="block text-base sm:text-lg text-cyan-400 hover:text-cyan-300">
                     help center
                   </a>
-                  <a href="#" className="block text-sm text-cyan-400 hover:text-cyan-300">
+                  <a href="#" className="block text-base sm:text-lg text-cyan-400 hover:text-cyan-300">
                     meta
                   </a>
                 </div>
               </div>
 
               {/* Help us improve */}
-              <div className="mt-4 pt-4 border-t border-slate-700">
-                <div className="bg-slate-800/50 border border-slate-700 rounded p-3">
-                  <p className="text-xs text-slate-400">
+              <div className="mt-6 pt-6 border-t-2 border-slate-700">
+                <div className="bg-slate-800/50 border-2 border-slate-700 rounded-lg p-4">
+                  <p className="text-sm sm:text-base text-slate-400">
                     Help us improve how to ask a question by{' '}
                     <a href="#" className="text-cyan-400 hover:text-cyan-300">
                       providing feedback or reporting a bug
                     </a>
-                    <svg className="inline w-3 h-3 ml-1 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="inline w-4 h-4 ml-1 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </p>
@@ -888,6 +891,7 @@ export default function AskQuestion() {
           </div>
         </div>
       </div>
+      </main>
     </div>
     </>
   );

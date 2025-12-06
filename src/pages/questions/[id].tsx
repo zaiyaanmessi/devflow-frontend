@@ -2,6 +2,7 @@ import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import api from '@/services/api';
+import Sidebar from '@/components/Sidebar';
 import StudentView from '@/components/QuestionDetail/StudentView';
 import ExpertView from '@/components/QuestionDetail/ExpertView';
 import AdminView from '@/components/QuestionDetail/AdminView';
@@ -265,11 +266,27 @@ export default function QuestionDetail() {
 
   const handleDeleteQuestion = async () => {
     if (!confirm('Are you sure you want to delete this question?')) return;
+    
     try {
-      await api.delete(`/questions/${id}`);
-      router.push('/');
+      setError('');
+      const response = await api.delete(`/questions/${id}`);
+      console.log('Question deleted successfully:', response.data);
+      
+      setTimeout(() => {
+        router.push('/questions');
+      }, 300);
+      
     } catch (err: any) {
       console.error('Error deleting question:', err);
+      
+      if (err.response?.status === 401) {
+        setError('Your session has expired. Please log in again.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.push('/login');
+        return;
+      }
+      
       setError(err.response?.data?.error || 'Failed to delete question');
     }
   };
@@ -324,6 +341,36 @@ export default function QuestionDetail() {
     } catch (err: any) {
       console.error('Error deleting answer:', err);
       setError(err.response?.data?.error || 'Failed to delete answer');
+    }
+  };
+
+  const handleLockQuestion = async () => {
+    try {
+      // TODO: Implement lock question API call
+      setError('Lock question feature not yet implemented');
+    } catch (err: any) {
+      console.error('Error locking question:', err);
+      setError(err.response?.data?.error || 'Failed to lock question');
+    }
+  };
+
+  const handlePinQuestion = async () => {
+    try {
+      // TODO: Implement pin question API call
+      setError('Pin question feature not yet implemented');
+    } catch (err: any) {
+      console.error('Error pinning question:', err);
+      setError(err.response?.data?.error || 'Failed to pin question');
+    }
+  };
+
+  const handleVerifyAnswer = async (answerId: string) => {
+    try {
+      // TODO: Implement verify answer API call
+      setError('Verify answer feature not yet implemented');
+    } catch (err: any) {
+      console.error('Error verifying answer:', err);
+      setError(err.response?.data?.error || 'Failed to verify answer');
     }
   };
 
@@ -382,7 +429,9 @@ export default function QuestionDetail() {
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-12">
+      <Sidebar />
+      <main className="main-with-sidebar">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12">
         {error && (
           <div className="bg-red-500/15 border-l-4 border-red-400 text-red-300 p-5 rounded-r-xl mb-6">
             <p className="font-medium">{error}</p>
@@ -390,7 +439,7 @@ export default function QuestionDetail() {
         )}
 
         {isEditingQuestion ? (
-          <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-6 sm:p-8 mb-8">
+          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-8 sm:p-10 mb-10">
             <form onSubmit={handleSaveQuestion}>
               <h2 className="text-2xl font-bold text-white mb-6">Edit Question</h2>
               <div className="space-y-4 mb-6">
@@ -398,13 +447,13 @@ export default function QuestionDetail() {
                   type="text"
                   value={editQuestionData.title}
                   onChange={(e) => setEditQuestionData({ ...editQuestionData, title: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full px-4 py-3 bg-slate-700/50 border-2 border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
                   required
                 />
                 <textarea
                   value={editQuestionData.body}
                   onChange={(e) => setEditQuestionData({ ...editQuestionData, body: e.target.value })}
-                  className="w-full h-48 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full h-48 px-4 py-3 bg-slate-700/50 border-2 border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
                   required
                 />
                 <input
@@ -412,14 +461,14 @@ export default function QuestionDetail() {
                   value={editQuestionData.tags}
                   onChange={(e) => setEditQuestionData({ ...editQuestionData, tags: e.target.value })}
                   placeholder="e.g., javascript, react"
-                  className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full px-4 py-3 bg-slate-700/50 border-2 border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
                 />
               </div>
               <div className="flex gap-4">
                 <button
                   type="submit"
                   disabled={isSavingQuestion}
-                  className="bg-cyan-500 text-white px-6 py-3 rounded-lg hover:bg-cyan-400 font-semibold transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 font-semibold transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed disabled:shadow-none"
                 >
                   {isSavingQuestion ? 'Saving...' : 'Save'}
                 </button>
@@ -434,33 +483,45 @@ export default function QuestionDetail() {
             </form>
           </div>
         ) : (
-          <div className="bg-slate-800/50 border border-slate-700 rounded p-4 sm:p-6 mb-6">
-            {currentUserRole === 'admin' && <AdminView {...commonProps} onDeleteAnyAnswer={handleDeleteAnyAnswer} />}
-            {currentUserRole === 'expert' && <ExpertView {...commonProps} />}
-            {(!currentUserRole || currentUserRole === 'user') && <StudentView {...commonProps} />}
+          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-8 sm:p-10 mb-12">
+            {currentUserRole === 'admin' && <AdminView {...commonProps} currentUserId={currentUserId} onDeleteAnyAnswer={handleDeleteAnyAnswer} onLockQuestion={handleLockQuestion} onPinQuestion={handlePinQuestion} />}
+            {currentUserRole === 'expert' && <ExpertView {...commonProps} currentUserId={currentUserId} onVerifyAnswer={handleVerifyAnswer} />}
+            {(!currentUserRole || currentUserRole === 'user') && <StudentView {...commonProps} currentUserId={currentUserId} />}
           </div>
         )}
 
-        <div className="bg-slate-800/50 border border-slate-700 rounded p-4 sm:p-6">
-          <h3 className="text-xl font-semibold text-white mb-4">Your Answer</h3>
+        <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-8 sm:p-10 mt-12">
+          <h3 className="text-2xl font-semibold text-white mb-3">Your Answer</h3>
+          <p className="text-sm text-slate-400 mb-6">Share your knowledge and help others solve this problem</p>
           <form onSubmit={handleAddAnswer}>
             <textarea
               value={answerText}
               onChange={(e) => setAnswerText(e.target.value)}
-              placeholder="Write your answer here..."
-              className="w-full h-40 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-4"
+              placeholder="Write your answer here... Be detailed and helpful!"
+              className="w-full h-48 px-4 py-3 bg-slate-700/50 border-2 border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 mb-4 transition-all"
               required
             />
             <button
               type="submit"
               disabled={submitLoading}
-              className="bg-cyan-500 text-white px-6 py-3 rounded-lg hover:bg-cyan-400 font-semibold transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 font-semibold transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed disabled:shadow-none"
             >
-              {submitLoading ? 'Posting...' : 'Post Answer'}
+              {submitLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Posting...
+                </span>
+              ) : (
+                'Post Answer'
+              )}
             </button>
           </form>
         </div>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
