@@ -22,7 +22,7 @@ export default function Profile() {
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   
   // Tab state
-  const [activeTab, setActiveTab] = useState<'profile' | 'activity' | 'saves' | 'settings'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'activity' | 'settings'>('profile');
   const [activeSubTab, setActiveSubTab] = useState<'summary' | 'answers' | 'questions' | 'tags'>('summary');
   
   // Edit state
@@ -549,20 +549,12 @@ export default function Profile() {
               Activity
             </button>
             {isOwnProfile && (
-              <>
-                <button
-                  onClick={() => setActiveTab('saves')}
-                  className={`profile-detail-tab ${activeTab === 'saves' ? 'active' : ''}`}
-                >
-                  Saves
-                </button>
-                <button
-                  onClick={() => setActiveTab('settings')}
-                  className={`profile-detail-tab ${activeTab === 'settings' ? 'active' : ''}`}
-                >
-                  Settings
-                </button>
-              </>
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`profile-detail-tab ${activeTab === 'settings' ? 'active' : ''}`}
+              >
+                Settings
+              </button>
             )}
           </div>
         </div>
@@ -592,76 +584,85 @@ export default function Profile() {
             <div className="profile-detail-content-main">
               {activeSubTab === 'summary' && (
                 <div className="profile-detail-section">
-                  {/* Info Cards */}
-                  <div className="profile-detail-info-cards">
-
-                    <div className="profile-detail-info-card">
-                      <div className="profile-detail-info-card-header">
-                        <div className="profile-detail-info-card-icon">
-                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                          </svg>
-                        </div>
-                        <h3 className="profile-detail-info-card-title">Badges</h3>
-                      </div>
-                      <p className="profile-detail-info-card-description">
-                        Earn badges for helpful actions. Badges are digital flair for helpful participation.
-                      </p>
-                      <button className="profile-detail-info-card-button">
-                        Take the Tour
-                      </button>
-                    </div>
-
-                    <div className="profile-detail-info-card">
-                      <div className="profile-detail-info-card-header">
-                        <div className="profile-detail-info-card-icon">
-                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                          </svg>
-                        </div>
-                        <h3 className="profile-detail-info-card-title">Impact</h3>
-                      </div>
-                      <p className="profile-detail-info-card-description">
-                        Your posts and actions help thousands of people find answers.
-                      </p>
-                    </div>
-                  </div>
 
                   {/* Answers Section */}
                   <div className="profile-detail-section">
                     <div className="profile-detail-section-header">
-                      <h2 className="profile-detail-section-title">Answers</h2>
-                      <div className="profile-detail-section-filters">
-                        {['Score', 'Activity', 'Newest', 'Views'].map((filter) => (
-                          <button
-                            key={filter}
-                            className="profile-detail-filter-button"
-                          >
-                            {filter}
-                          </button>
-                        ))}
-                      </div>
+                      <h2 className="profile-detail-section-title">Top Answers</h2>
+                      <Link 
+                        href={`/profile/${id}?tab=answers`}
+                        className="profile-detail-section-view-all"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setActiveSubTab('answers');
+                        }}
+                      >
+                        View all {answers.length} answers →
+                      </Link>
                     </div>
                     {answers.length === 0 ? (
-                      <p className="profile-detail-empty-state">No answers yet</p>
+                      <div className="profile-detail-empty-state-card">
+                        <p className="profile-detail-empty-state-text">No answers yet</p>
+                        <p className="profile-detail-empty-state-subtext">Start helping the community by answering questions!</p>
+                      </div>
                     ) : (
                       <div className="profile-detail-items-list">
                         {answers.slice(0, 5).map((answer: any) => (
-                          <div key={answer._id} className="profile-detail-item-card">
-                            <Link
-                              href={`/questions/${answer.questionId._id}`}
-                              className="profile-detail-item-card-link"
-                            >
-                              {answer.questionId?.title || 'Question'}
-                            </Link>
-                            <p className="profile-detail-item-body">{answer.body}</p>
-                            <div className="profile-detail-item-meta">
-                              <span>{answer.votes || 0} votes</span>
+                          <Link
+                            key={answer._id}
+                            href={`/questions/${answer.questionId?._id || answer.questionId}`}
+                            className="profile-detail-item-card profile-detail-item-card-hover"
+                          >
+                            <div className="profile-detail-item-header">
+                              <h3 className="profile-detail-item-title">
+                                {answer.questionId?.title || 'Question'}
+                              </h3>
                               {answer.isAccepted && (
-                                <span className="profile-detail-item-accepted">✓ Accepted</span>
+                                <span className="profile-detail-item-badge-accepted">
+                                  <svg className="profile-detail-item-badge-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  Accepted
+                                </span>
+                              )}
+                              {answer.isVerified && (
+                                <span className="profile-detail-item-badge-verified">
+                                  <svg className="profile-detail-item-badge-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  Verified
+                                </span>
                               )}
                             </div>
-                          </div>
+                            <div 
+                              className="profile-detail-item-body"
+                              dangerouslySetInnerHTML={{
+                                __html: (answer.body || '').substring(0, 200) + (answer.body?.length > 200 ? '...' : '')
+                                  .replace(
+                                    /\[your image\]\((data:image\/[^)]+)\)/g,
+                                    '<span class="text-cyan-400">[Image]</span>'
+                                  )
+                                  .replace(
+                                    /\[([^\]]+)\]\(([^)]+)\)/g,
+                                    '<span class="text-cyan-400">$1</span>'
+                                  )
+                              }}
+                            />
+                            <div className="profile-detail-item-meta">
+                              <div className="profile-detail-item-meta-group">
+                                <svg className="profile-detail-item-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                                </svg>
+                                <span>{answer.votes || 0} votes</span>
+                              </div>
+                              <div className="profile-detail-item-meta-group">
+                                <svg className="profile-detail-item-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span>{new Date(answer.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                              </div>
+                            </div>
+                          </Link>
                         ))}
                       </div>
                     )}
@@ -670,35 +671,104 @@ export default function Profile() {
                   {/* Questions Section */}
                   <div className="profile-detail-section">
                     <div className="profile-detail-section-header">
-                      <h2 className="profile-detail-section-title">Questions</h2>
-                      <div className="profile-detail-section-filters">
-                        {['Score', 'Activity', 'Newest', 'Views'].map((filter) => (
-                          <button
-                            key={filter}
-                            className="profile-detail-filter-button"
-                          >
-                            {filter}
-                          </button>
-                        ))}
-                      </div>
+                      <h2 className="profile-detail-section-title">Top Questions</h2>
+                      <Link 
+                        href={`/profile/${id}?tab=questions`}
+                        className="profile-detail-section-view-all"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setActiveSubTab('questions');
+                        }}
+                      >
+                        View all {questions.length} questions →
+                      </Link>
                     </div>
                     {questions.length === 0 ? (
-                      <p className="profile-detail-empty-state">No questions yet</p>
+                      <div className="profile-detail-empty-state-card">
+                        <p className="profile-detail-empty-state-text">No questions yet</p>
+                        <p className="profile-detail-empty-state-subtext">Start asking questions to get help from the community!</p>
+                      </div>
                     ) : (
                       <div className="profile-detail-items-list">
                         {questions.slice(0, 5).map((question: any) => (
                           <Link
                             key={question._id}
                             href={`/questions/${question._id}`}
-                            className="profile-detail-item-card-hover"
+                            className="profile-detail-item-card profile-detail-item-card-hover"
                           >
-                            <h3 className="profile-detail-item-title">
-                              {question.title}
-                            </h3>
+                            <div className="profile-detail-item-header">
+                              <h3 className="profile-detail-item-title">
+                                {question.title}
+                              </h3>
+                              {question.isPinned && (
+                                <span className="profile-detail-item-badge-pinned">
+                                  <svg className="profile-detail-item-badge-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                  </svg>
+                                  Pinned
+                                </span>
+                              )}
+                              {question.acceptedAnswer && (
+                                <span className="profile-detail-item-badge-solved">
+                                  <svg className="profile-detail-item-badge-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  Solved
+                                </span>
+                              )}
+                            </div>
+                            <div 
+                              className="profile-detail-item-body"
+                              dangerouslySetInnerHTML={{
+                                __html: (question.body || '').substring(0, 200) + (question.body?.length > 200 ? '...' : '')
+                                  .replace(
+                                    /\[your image\]\((data:image\/[^)]+)\)/g,
+                                    '<span class="text-cyan-400">[Image]</span>'
+                                  )
+                                  .replace(
+                                    /\[([^\]]+)\]\(([^)]+)\)/g,
+                                    '<span class="text-cyan-400">$1</span>'
+                                  )
+                              }}
+                            />
+                            {question.tags && question.tags.length > 0 && (
+                              <div className="profile-detail-item-tags">
+                                {question.tags.slice(0, 3).map((tag: string) => (
+                                  <span key={tag} className="profile-detail-item-tag">
+                                    {tag}
+                                  </span>
+                                ))}
+                                {question.tags.length > 3 && (
+                                  <span className="profile-detail-item-tag-more">+{question.tags.length - 3}</span>
+                                )}
+                              </div>
+                            )}
                             <div className="profile-detail-item-meta">
-                              <span>{question.votes || 0} votes</span>
-                              <span>{question.answers || 0} answers</span>
-                              <span>{question.views || 0} views</span>
+                              <div className="profile-detail-item-meta-group">
+                                <svg className="profile-detail-item-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                                </svg>
+                                <span>{question.votes || 0} votes</span>
+                              </div>
+                              <div className="profile-detail-item-meta-group">
+                                <svg className="profile-detail-item-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                </svg>
+                                <span>{question.answerCount || question.answers?.length || 0} answers</span>
+                              </div>
+                              <div className="profile-detail-item-meta-group">
+                                <svg className="profile-detail-item-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <span>{question.views || 0} views</span>
+                              </div>
+                              <div className="profile-detail-item-meta-group">
+                                <svg className="profile-detail-item-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span>{new Date(question.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                              </div>
                             </div>
                           </Link>
                         ))}
@@ -769,16 +839,6 @@ export default function Profile() {
                 <div className="profile-detail-section">
                   <div className="profile-detail-section-header">
                     <h2 className="profile-detail-section-title">Tags</h2>
-                    <div className="profile-detail-section-filters">
-                      {['Score', 'Activity', 'Newest', 'Views'].map((filter) => (
-                        <button
-                          key={filter}
-                          className="profile-detail-filter-button"
-                        >
-                          {filter}
-                        </button>
-                      ))}
-                    </div>
                   </div>
                   {tags.length === 0 ? (
                     <p className="profile-detail-empty-state">No tags yet. Tags will appear here when you ask questions with tags.</p>
@@ -879,30 +939,6 @@ export default function Profile() {
           </div>
         )}
 
-        {activeTab === 'saves' && (
-          <div className="profile-detail-content-grid">
-            <div className="profile-detail-content-main">
-              <div className="profile-detail-section">
-                <div className="profile-detail-section-header">
-                  <h2 className="profile-detail-section-title">Saved Questions</h2>
-                  <div className="profile-detail-section-filters">
-                    {['All', 'Recent', 'Oldest'].map((filter) => (
-                      <button
-                        key={filter}
-                        className="profile-detail-filter-button"
-                      >
-                        {filter}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <p className="profile-detail-empty-state">
-                  Saved questions will appear here. Use the bookmark feature on questions to save them for later.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {activeTab === 'settings' && isOwnProfile && (
           <div className="profile-detail-content-grid">
