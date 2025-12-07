@@ -270,7 +270,7 @@ export default function Profile() {
     selectedRole,
     isChangingRole,
     onChangeRole: handleChangeRole,
-    canChangeRole: isOwnProfile || currentUserRole === 'admin'
+    canChangeRole: isOwnProfile // Only users can change their own role, no one can change others
   };
 
   // Format date helper
@@ -523,9 +523,10 @@ export default function Profile() {
       Edit profile
     </button>
   )}
-  {(isOwnProfile || currentUserRole === 'admin') && (
+  {/* Only users can change their own role, no one can change others' roles */}
+  {isOwnProfile && (
     <div className="bg-slate-700 rounded-lg p-2">
-      <label className="text-xs font-medium text-slate-300 mb-1 block">Change Role:</label>
+      <label className="text-xs font-medium text-slate-300 mb-1 block">Change My Role:</label>
       <select
         value={selectedRole}
         onChange={(e) => handleChangeRole(e.target.value)}

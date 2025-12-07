@@ -167,8 +167,8 @@ export default function QuestionsPage() {
       {/* ⭐ REMOVED: Navbar - now handled by _app.tsx */}
       {showSidebar && <Sidebar />}
       
-      <main className={showSidebar ? "main-with-sidebar" : "w-full"}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12">
+      <main className={showSidebar ? "main-with-sidebar" : "w-full flex justify-center"}>
+        <div className="w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12">
           {/* Page Header */}
           <div className="mb-8 sm:mb-12">
             <div className="flex items-center gap-4 sm:gap-6 mb-4 sm:mb-6">

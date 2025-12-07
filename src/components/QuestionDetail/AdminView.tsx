@@ -24,8 +24,6 @@ interface AdminViewProps {
   onAddQuestionComment: (e: React.FormEvent) => void;
   onAddAnswerComment: (answerId: string, e: React.FormEvent) => void;
   onDeleteComment: (commentId: string, targetType: 'question' | 'answer') => void;
-  onLockQuestion: () => void;
-  onPinQuestion: () => void;
   onDeleteAnyAnswer: (answerId: string) => void;
   
   // State
@@ -38,8 +36,6 @@ interface AdminViewProps {
   setEditingAnswerText: (text: string) => void;
   onSaveAnswer: (answerId: string) => Promise<void>;
   isSavingAnswer: boolean;
-  isQuestionLocked?: boolean;
-  isQuestionPinned?: boolean;
 }
 
 export default function AdminView({
@@ -61,8 +57,6 @@ export default function AdminView({
   onAddQuestionComment,
   onAddAnswerComment,
   onDeleteComment,
-  onLockQuestion,
-  onPinQuestion,
   onDeleteAnyAnswer,
   commentText,
   setCommentText,
@@ -72,9 +66,7 @@ export default function AdminView({
   editingAnswerText,
   setEditingAnswerText,
   onSaveAnswer,
-  isSavingAnswer,
-  isQuestionLocked = false,
-  isQuestionPinned = false
+  isSavingAnswer
 }: AdminViewProps) {
   return (
     <>
@@ -84,40 +76,8 @@ export default function AdminView({
           <div>
             <h3 className="font-bold text-red-300 flex items-center gap-2 flex-wrap">
               👨‍💼 Instructor/Admin View
-              {isQuestionLocked && (
-                <span className="bg-red-500/20 text-red-300 px-2 py-1 rounded text-xs font-semibold border border-red-500/50">
-                  🔒 Locked
-                </span>
-              )}
-              {isQuestionPinned && (
-                <span className="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded text-xs font-semibold border border-yellow-500/50">
-                  📌 Pinned
-                </span>
-              )}
             </h3>
             <p className="text-sm text-red-400 mt-1">Full moderation controls enabled</p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={onLockQuestion}
-              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-                isQuestionLocked
-                  ? 'bg-red-500 text-white hover:bg-red-400'
-                  : 'bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/50'
-              }`}
-            >
-              {isQuestionLocked ? '🔒 Unlock' : '🔒 Lock'}
-            </button>
-            <button
-              onClick={onPinQuestion}
-              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-                isQuestionPinned
-                  ? 'bg-yellow-500 text-white hover:bg-yellow-400'
-                  : 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30 border border-yellow-500/50'
-              }`}
-            >
-              {isQuestionPinned ? '📌 Unpin' : '📌 Pin'}
-            </button>
           </div>
         </div>
       </div>

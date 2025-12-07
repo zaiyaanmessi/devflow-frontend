@@ -19,6 +19,7 @@ export default function QuestionDetail() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [isQuestionAsker, setIsQuestionAsker] = useState(false);
+  const [user, setUser] = useState<any>(null);
   
   const [isEditingQuestion, setIsEditingQuestion] = useState(false);
   const [editQuestionData, setEditQuestionData] = useState({ title: '', body: '', tags: '' });
@@ -44,14 +45,19 @@ export default function QuestionDetail() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const userData = localStorage.getItem('user');
-      if (userData) {
+      const token = localStorage.getItem('token');
+      if (userData && token && userData !== 'undefined' && userData !== 'null') {
         try {
-          const user = JSON.parse(userData);
-          setCurrentUserId(user._id);
-          setCurrentUserRole(user.role);
+          const userObj = JSON.parse(userData);
+          setUser(userObj);
+          setCurrentUserId(userObj._id || userObj.id);
+          setCurrentUserRole(userObj.role || 'user');
         } catch (err) {
           console.error('Failed to parse user data:', err);
+          setUser(null);
         }
+      } else {
+        setUser(null);
       }
     }
   }, []);
@@ -384,23 +390,6 @@ export default function QuestionDetail() {
     }
   };
 
-  const handleLockQuestion = async () => {
-    try {
-      setError('Lock question feature not yet implemented');
-    } catch (err: any) {
-      console.error('Error locking question:', err);
-      setError(err.response?.data?.error || 'Failed to lock question');
-    }
-  };
-
-  const handlePinQuestion = async () => {
-    try {
-      setError('Pin question feature not yet implemented');
-    } catch (err: any) {
-      console.error('Error pinning question:', err);
-      setError(err.response?.data?.error || 'Failed to pin question');
-    }
-  };
 
   const handleVerifyAnswer = async (answerId: string) => {
     try {
@@ -464,10 +453,13 @@ export default function QuestionDetail() {
     isSavingAnswer,
   };
 
+  // Show sidebar only if logged in
+  const showSidebar = user ? true : false;
+
   return (
       <div className="min-h-screen bg-slate-900">
-      <Sidebar />
-      <main className="main-with-sidebar !pl-[20rem] lg:!pl-[22rem] xl:!pl-[24rem]">
+      {showSidebar && <Sidebar />}
+      <main className={showSidebar ? "main-with-sidebar !pl-[20rem] lg:!pl-[22rem] xl:!pl-[24rem]" : "w-full"}>
         <div className="max-w-[1400px] mx-auto px-8 sm:px-12 md:px-16 lg:px-20 xl:px-24 py-12 sm:py-16 md:py-20">
         {error && (
           <div className="bg-red-500/15 border-l-4 border-red-400 text-red-300 p-5 rounded-r-xl mb-6">
@@ -521,7 +513,7 @@ export default function QuestionDetail() {
           </div>
         ) : (
           <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-10 sm:p-12 md:p-16 mb-16">
-            {currentUserRole === 'admin' && <AdminView {...commonProps} currentUserId={currentUserId} onDeleteAnyAnswer={handleDeleteAnyAnswer} onLockQuestion={handleLockQuestion} onPinQuestion={handlePinQuestion} />}
+            {currentUserRole === 'admin' && <AdminView {...commonProps} currentUserId={currentUserId} onDeleteAnyAnswer={handleDeleteAnyAnswer} />}
             {currentUserRole === 'expert' && <ExpertView {...commonProps} currentUserId={currentUserId} onVerifyAnswer={handleVerifyAnswer} />}
             {(!currentUserRole || currentUserRole === 'user') && <StudentView {...commonProps} currentUserId={currentUserId} />}
           </div>
