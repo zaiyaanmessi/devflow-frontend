@@ -428,10 +428,10 @@ export default function QuestionDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900">
+      <div className="min-h-screen bg-slate-900">
       <Sidebar />
-      <main className="main-with-sidebar">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12">
+      <main className="main-with-sidebar !pl-[20rem] lg:!pl-[22rem] xl:!pl-[24rem]">
+        <div className="max-w-[1400px] mx-auto px-8 sm:px-12 md:px-16 lg:px-20 xl:px-24 py-12 sm:py-16 md:py-20">
         {error && (
           <div className="bg-red-500/15 border-l-4 border-red-400 text-red-300 p-5 rounded-r-xl mb-6">
             <p className="font-medium">{error}</p>
@@ -439,7 +439,7 @@ export default function QuestionDetail() {
         )}
 
         {isEditingQuestion ? (
-          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-8 sm:p-10 mb-10">
+          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-10 sm:p-12 md:p-16 mb-12">
             <form onSubmit={handleSaveQuestion}>
               <h2 className="text-2xl font-bold text-white mb-6">Edit Question</h2>
               <div className="space-y-4 mb-6">
@@ -483,14 +483,14 @@ export default function QuestionDetail() {
             </form>
           </div>
         ) : (
-          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-8 sm:p-10 mb-12">
+          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-10 sm:p-12 md:p-16 mb-16">
             {currentUserRole === 'admin' && <AdminView {...commonProps} currentUserId={currentUserId} onDeleteAnyAnswer={handleDeleteAnyAnswer} onLockQuestion={handleLockQuestion} onPinQuestion={handlePinQuestion} />}
             {currentUserRole === 'expert' && <ExpertView {...commonProps} currentUserId={currentUserId} onVerifyAnswer={handleVerifyAnswer} />}
             {(!currentUserRole || currentUserRole === 'user') && <StudentView {...commonProps} currentUserId={currentUserId} />}
           </div>
         )}
 
-        <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-8 sm:p-10 mt-12">
+        <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-10 sm:p-12 md:p-16 mt-16">
           <h3 className="text-2xl font-semibold text-white mb-3">Your Answer</h3>
           <p className="text-sm text-slate-400 mb-6">Share your knowledge and help others solve this problem</p>
           <form onSubmit={handleAddAnswer}>

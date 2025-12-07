@@ -79,8 +79,8 @@ export default function ExpertView({
       </div>
 
       {/* Question Section - Clearly Distinguished */}
-      <div className="bg-slate-800/60 border-2 border-cyan-500/30 rounded-xl p-8 mb-12 shadow-lg shadow-cyan-500/10">
-        <div className="flex gap-8">
+      <div className="bg-slate-800/60 border-2 border-cyan-500/30 rounded-xl p-10 sm:p-12 md:p-16 mb-16 shadow-lg shadow-cyan-500/10">
+        <div className="flex gap-10 sm:gap-12">
           {/* Left: Vote Column */}
           <div className="flex flex-col items-center gap-3 min-w-[50px]">
             <button
@@ -113,12 +113,12 @@ export default function ExpertView({
           {/* Right: Question Content */}
           <div className="flex-1 min-w-0">
             {/* Question Title */}
-            <h1 className="text-3xl sm:text-4xl font-normal text-cyan-400 mb-6 leading-snug break-words overflow-wrap-anywhere">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-normal text-cyan-400 mb-8 leading-snug break-words overflow-wrap-anywhere">
               {question.title}
             </h1>
 
             {/* Question Meta */}
-            <div className="flex items-center gap-3 text-sm text-slate-400 mb-6 flex-wrap">
+            <div className="flex items-center gap-3 text-sm sm:text-base text-slate-400 mb-8 flex-wrap">
               <span>Asked</span>
               <span>{new Date(question.createdAt).toLocaleDateString()}</span>
               <span>•</span>
@@ -149,9 +149,9 @@ export default function ExpertView({
               )}
       </div>
 
-      {/* Question Body */}
-        <div 
-              className="text-lg text-slate-300 mb-8 whitespace-pre-wrap leading-relaxed"
+            {/* Question Body */}
+            <div 
+              className="text-lg sm:text-xl text-slate-300 mb-10 whitespace-pre-wrap leading-relaxed"
           dangerouslySetInnerHTML={{
             __html: question.body
               .replace(
@@ -166,7 +166,7 @@ export default function ExpertView({
         />
 
             {/* Tags */}
-            <div className="flex gap-2 flex-wrap mb-8">
+            <div className="flex gap-3 flex-wrap mb-10">
               {question.tags?.map((tag: string) => (
                 <span
                   key={tag}
@@ -178,7 +178,7 @@ export default function ExpertView({
       </div>
 
             {/* Question Comments - Clearly Distinguished as Subpart */}
-            <div className="bg-slate-900/50 border-l-4 border-slate-600 rounded-r-lg p-5 mt-8">
+            <div className="bg-slate-900/50 border-l-4 border-slate-600 rounded-r-lg p-6 sm:p-8 mt-10">
               <h3 className="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wide">Comments</h3>
         <div className="space-y-3 mb-4">
           {questionComments.map((comment: any) => (
@@ -223,8 +223,8 @@ export default function ExpertView({
       </div>
 
       {/* Answers Section */}
-      <div className="mt-12">
-        <h2 className="text-xl font-semibold text-white mb-6">
+      <div className="mt-16">
+        <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-8">
           {answers.length} {answers.length === 1 ? 'Answer' : 'Answers'}
         </h2>
 
@@ -233,13 +233,13 @@ export default function ExpertView({
             No answers yet. Be the first to answer!
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-10 sm:space-y-12">
             {answers.map((answer: any) => {
               const isExpertAnswer = answer.answerer.role === 'expert';
               return (
                 <div
                   key={answer._id}
-                  className={`flex gap-6 p-6 rounded-xl bg-slate-800/50 border-2 ${
+                  className={`flex gap-8 sm:gap-10 p-8 sm:p-10 rounded-xl bg-slate-800/50 border-2 ${
                     answer.isAccepted
                       ? 'bg-gradient-to-r from-green-500/20 via-green-500/15 to-slate-800/50 border-green-500 shadow-lg shadow-green-500/20' 
                       : isExpertAnswer && !answer.isAccepted
@@ -333,7 +333,7 @@ export default function ExpertView({
                   ) : (
                       <>
                         {/* Answer Meta */}
-                        <div className="flex items-center gap-3 text-sm text-slate-400 mb-4 flex-wrap">
+                        <div className="flex items-center gap-3 text-sm sm:text-base text-slate-400 mb-6 flex-wrap">
                           <span>Answered</span>
                           <span>{new Date(answer.createdAt).toLocaleDateString()}</span>
                           <span>•</span>
@@ -394,7 +394,7 @@ export default function ExpertView({
 
                         {/* Answer Body */}
                         <div 
-                          className="text-lg text-slate-300 mb-6 whitespace-pre-wrap leading-relaxed"
+                          className="text-lg sm:text-xl text-slate-300 mb-8 whitespace-pre-wrap leading-relaxed"
                           dangerouslySetInnerHTML={{
                             __html: answer.body
                               .replace(
@@ -409,7 +409,7 @@ export default function ExpertView({
                         />
 
                         {/* Answer Comments - Clearly Distinguished as Subpart */}
-                        <div className="bg-slate-900/50 border-l-4 border-slate-600 rounded-r-lg p-5 mt-6">
+                        <div className="bg-slate-900/50 border-l-4 border-slate-600 rounded-r-lg p-6 sm:p-8 mt-8">
                           <h3 className="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wide">Comments</h3>
                           <div className="space-y-3 mb-4">
                           {(answerComments[answer._id] || []).map((comment: any) => (
