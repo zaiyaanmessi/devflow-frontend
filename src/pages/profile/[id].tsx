@@ -32,6 +32,11 @@ export default function Profile() {
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ⭐ NEW - Role change state
+  const [selectedRole, setSelectedRole] = useState<string>('user');
+  const [isChangingRole, setIsChangingRole] = useState(false);
+  const [roleChangeSuccess, setRoleChangeSuccess] = useState('');
+
   // Get current user from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -67,6 +72,7 @@ export default function Profile() {
       const response = await api.get(`/users/${id}`);
       setUser(response.data);
       setUserRole(response.data.role);
+      setSelectedRole(response.data.role); // ⭐ NEW
       setEditData({
         username: response.data.username,
         bio: response.data.bio || '',
@@ -174,6 +180,53 @@ export default function Profile() {
     }
   };
 
+  // ⭐ NEW - Handle role change
+  const handleChangeRole = async (newRole: string) => {
+    if (newRole === userRole) {
+      setError('User already has this role');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to change the role to ${newRole}?`)) {
+      return;
+    }
+
+    setIsChangingRole(true);
+    setError('');
+    setRoleChangeSuccess('');
+
+    try {
+      const response = await api.put(`/users/${id}/role`, { role: newRole });
+      setUser(response.data.user);
+      setUserRole(response.data.user.role);
+      setSelectedRole(response.data.user.role);
+      setRoleChangeSuccess(`Role successfully changed to ${newRole}!`);
+      
+      // Update localStorage if it's the current user
+      if (isOwnProfile && typeof window !== 'undefined') {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          try {
+            const parsedUser = JSON.parse(userData);
+            parsedUser.role = newRole;
+            localStorage.setItem('user', JSON.stringify(parsedUser));
+            setCurrentUserRole(newRole);
+          } catch (err) {
+            console.error('Failed to update localStorage:', err);
+          }
+        }
+      }
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setRoleChangeSuccess(''), 3000);
+    } catch (err: any) {
+      console.error('Error changing role:', err);
+      setError(err.response?.data?.error || 'Failed to change role');
+    } finally {
+      setIsChangingRole(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 py-8 px-4">
@@ -212,7 +265,12 @@ export default function Profile() {
     isSaving,
     error,
     setError,
-    onUpdateProfile: handleUpdateProfile
+    onUpdateProfile: handleUpdateProfile,
+    // ⭐ NEW
+    selectedRole,
+    isChangingRole,
+    onChangeRole: handleChangeRole,
+    canChangeRole: isOwnProfile || currentUserRole === 'admin'
   };
 
   // Format date helper
@@ -410,6 +468,12 @@ export default function Profile() {
           </div>
         )}
 
+        {roleChangeSuccess && (
+          <div className="bg-green-500/20 text-green-400 p-4 rounded-lg mb-6 border border-green-500/50">
+            {roleChangeSuccess}
+          </div>
+        )}
+
         {/* Profile Header */}
         <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl shadow-lg shadow-black/30 p-6 mb-4">
           <div className="flex gap-6 mb-6">
@@ -430,7 +494,18 @@ export default function Profile() {
             
             {/* User Info */}
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">{user.username}</h1>
+              <div className="flex items-center gap-3 mb-2 flex-wrap">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">{user.username}</h1>
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold text-white ${
+                  userRole === 'admin' ? 'bg-red-500' :
+                  userRole === 'expert' ? 'bg-purple-500' :
+                  'bg-slate-600'
+                }`}>
+                  {userRole === 'admin' ? '👨‍💼 Admin' :
+                   userRole === 'expert' ? '👨‍🏫 Expert' :
+                   '👨‍🎓 Student'}
+                </span>
+              </div>
               <div className="space-y-1 text-sm text-slate-400">
                 <p>Member since {memberSince}</p>
                 <p>Last seen {memberSince}</p>
@@ -439,19 +514,29 @@ export default function Profile() {
             </div>
 
             {/* Action Buttons */}
-            {isOwnProfile && (
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 text-sm font-medium transition-colors whitespace-nowrap"
-                >
-                  Edit profile
-                </button>
-                <button className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 text-sm font-medium transition-colors whitespace-nowrap">
-                  Network profile
-                </button>
-              </div>
-            )}
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 text-sm font-medium transition-colors whitespace-nowrap"
+              >
+                Edit profile
+              </button>
+              {(isOwnProfile || currentUserRole === 'admin') && (
+                <div className="bg-slate-700 rounded-lg p-2">
+                  <label className="text-xs font-medium text-slate-300 mb-1 block">Change Role:</label>
+                  <select
+                    value={selectedRole}
+                    onChange={(e) => handleChangeRole(e.target.value)}
+                    disabled={isChangingRole}
+                    className="w-full px-2 py-1.5 bg-slate-600 border border-slate-500 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="user">👨‍🎓 Student</option>
+                    <option value="expert">👨‍🏫 Expert</option>
+                    <option value="admin">👨‍💼 Admin</option>
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Tabs */}
