@@ -207,9 +207,7 @@ export default function QuestionDetail() {
   };
 
   const handleVoteQuestion = async (value: 1 | -1) => {
-    // ✅ Check if user is logged in first
     if (!currentUserId) return;
-    
     if (!question) return;
     try {
       const response = await api.post('/votes', {
@@ -224,12 +222,9 @@ export default function QuestionDetail() {
       setError(err.response?.data?.error || 'Failed to vote');
     }
   };
-  
 
   const handleVoteAnswer = async (answerId: string, value: 1 | -1) => {
-    // ✅ Check if user is logged in first
     if (!currentUserId) return;
-    
     try {
       const response = await api.post('/votes', {
         targetType: 'answer',
@@ -390,7 +385,6 @@ export default function QuestionDetail() {
     }
   };
 
-
   const handleVerifyAnswer = async (answerId: string) => {
     try {
       setError('Verify answer feature not yet implemented');
@@ -402,9 +396,9 @@ export default function QuestionDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 py-8 px-4">
-        <div className="max-w-4xl mx-auto text-center py-8">
-          <div className="text-lg text-slate-400">Loading question...</div>
+      <div className="question-detail-loading">
+        <div className="question-detail-loading-content">
+          <div className="question-detail-loading-text">Loading question...</div>
         </div>
       </div>
     );
@@ -412,10 +406,10 @@ export default function QuestionDetail() {
 
   if (!question) {
     return (
-      <div className="min-h-screen bg-slate-900 py-8 px-4">
-        <div className="max-w-4xl mx-auto text-center py-8">
-          <div className="text-lg text-slate-400">Question not found</div>
-          <Link href="/questions" className="text-cyan-400 font-semibold hover:text-cyan-300 mt-4 inline-block">
+      <div className="question-detail-loading">
+        <div className="question-detail-loading-content">
+          <div className="question-detail-loading-text">Question not found</div>
+          <Link href="/questions" className="question-detail-back-link">
             ← Back to Questions
           </Link>
         </div>
@@ -453,117 +447,118 @@ export default function QuestionDetail() {
     isSavingAnswer,
   };
 
-  // Show sidebar only if logged in
   const showSidebar = user ? true : false;
 
   return (
-      <div className="min-h-screen bg-slate-900">
+    <div className="question-detail-container">
       {showSidebar && <Sidebar />}
       <main className={showSidebar ? "main-with-sidebar !pl-[20rem] lg:!pl-[22rem] xl:!pl-[24rem]" : "w-full"}>
-        <div className="max-w-[1400px] mx-auto px-8 sm:px-12 md:px-16 lg:px-20 xl:px-24 py-12 sm:py-16 md:py-20">
-        {error && (
-          <div className="bg-red-500/15 border-l-4 border-red-400 text-red-300 p-5 rounded-r-xl mb-6">
-            <p className="font-medium">{error}</p>
-          </div>
-        )}
+        <div className="question-detail-main">
+          {error && (
+            <div className="question-detail-error">
+              <p className="question-detail-error-text">{error}</p>
+            </div>
+          )}
 
-        {isEditingQuestion ? (
-          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-10 sm:p-12 md:p-16 mb-12">
-            <form onSubmit={handleSaveQuestion}>
-              <h2 className="text-2xl font-bold text-white mb-6">Edit Question</h2>
-              <div className="space-y-4 mb-6">
-                <input
-                  type="text"
-                  value={editQuestionData.title}
-                  onChange={(e) => setEditQuestionData({ ...editQuestionData, title: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-700/50 border-2 border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
-                  required
-                />
+          {isEditingQuestion ? (
+            <div className="question-detail-edit-container">
+              <form onSubmit={handleSaveQuestion}>
+                <h2 className="question-detail-edit-title">Edit Question</h2>
+                <div className="question-detail-edit-form">
+                  <input
+                    type="text"
+                    value={editQuestionData.title}
+                    onChange={(e) => setEditQuestionData({ ...editQuestionData, title: e.target.value })}
+                    className="question-detail-edit-input"
+                    placeholder="Question title"
+                    required
+                  />
+                  <textarea
+                    value={editQuestionData.body}
+                    onChange={(e) => setEditQuestionData({ ...editQuestionData, body: e.target.value })}
+                    className="question-detail-edit-textarea"
+                    placeholder="Question body"
+                    required
+                  />
+                  <input
+                    type="text"
+                    value={editQuestionData.tags}
+                    onChange={(e) => setEditQuestionData({ ...editQuestionData, tags: e.target.value })}
+                    placeholder="e.g., javascript, react"
+                    className="question-detail-edit-input"
+                  />
+                </div>
+                <div className="question-detail-edit-buttons">
+                  <button
+                    type="submit"
+                    disabled={isSavingQuestion}
+                    className="question-detail-edit-save"
+                  >
+                    {isSavingQuestion ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingQuestion(false)}
+                    className="question-detail-edit-cancel"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : (
+            <div className="question-detail-view-container">
+              {currentUserRole === 'admin' && <AdminView {...commonProps} currentUserId={currentUserId} onDeleteAnyAnswer={handleDeleteAnyAnswer} />}
+              {currentUserRole === 'expert' && <ExpertView {...commonProps} currentUserId={currentUserId} onVerifyAnswer={handleVerifyAnswer} />}
+              {(!currentUserRole || currentUserRole === 'user') && <StudentView {...commonProps} currentUserId={currentUserId} />}
+            </div>
+          )}
+
+          {currentUserId ? (
+            <div className="question-detail-answer-container">
+              <h3 className="question-detail-answer-title">Your Answer</h3>
+              <p className="question-detail-answer-subtitle">Share your knowledge and help others solve this problem</p>
+              <form onSubmit={handleAddAnswer}>
                 <textarea
-                  value={editQuestionData.body}
-                  onChange={(e) => setEditQuestionData({ ...editQuestionData, body: e.target.value })}
-                  className="w-full h-48 px-4 py-3 bg-slate-700/50 border-2 border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                  value={answerText}
+                  onChange={(e) => setAnswerText(e.target.value)}
+                  placeholder="Write your answer here... Be detailed and helpful!"
+                  className="question-detail-answer-textarea"
                   required
                 />
-                <input
-                  type="text"
-                  value={editQuestionData.tags}
-                  onChange={(e) => setEditQuestionData({ ...editQuestionData, tags: e.target.value })}
-                  placeholder="e.g., javascript, react"
-                  className="w-full px-4 py-3 bg-slate-700/50 border-2 border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
-                />
-              </div>
-              <div className="flex gap-4">
                 <button
                   type="submit"
-                  disabled={isSavingQuestion}
-                  className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 font-semibold transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed disabled:shadow-none"
+                  disabled={submitLoading}
+                  className="question-detail-answer-submit"
                 >
-                  {isSavingQuestion ? 'Saving...' : 'Save'}
+                  {submitLoading ? (
+                    <>
+                      <svg className="question-detail-answer-spinner" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Posting...
+                    </>
+                  ) : (
+                    'Post Answer'
+                  )}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingQuestion(false)}
-                  className="bg-slate-700 text-slate-300 px-6 py-3 rounded-lg hover:bg-slate-600 font-semibold transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        ) : (
-          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-10 sm:p-12 md:p-16 mb-16">
-            {currentUserRole === 'admin' && <AdminView {...commonProps} currentUserId={currentUserId} onDeleteAnyAnswer={handleDeleteAnyAnswer} />}
-            {currentUserRole === 'expert' && <ExpertView {...commonProps} currentUserId={currentUserId} onVerifyAnswer={handleVerifyAnswer} />}
-            {(!currentUserRole || currentUserRole === 'user') && <StudentView {...commonProps} currentUserId={currentUserId} />}
-          </div>
-        )}
-
-        {currentUserId ? (
-          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-10 sm:p-12 md:p-16 mt-16">
-            <h3 className="text-2xl font-semibold text-white mb-3">Your Answer</h3>
-            <p className="text-sm text-slate-400 mb-6">Share your knowledge and help others solve this problem</p>
-            <form onSubmit={handleAddAnswer}>
-              <textarea
-                value={answerText}
-                onChange={(e) => setAnswerText(e.target.value)}
-                placeholder="Write your answer here... Be detailed and helpful!"
-                className="w-full h-48 px-4 py-3 bg-slate-700/50 border-2 border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 mb-4 transition-all"
-                required
-              />
-              <button
-                type="submit"
-                disabled={submitLoading}
-                className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 font-semibold transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed disabled:shadow-none"
-              >
-                {submitLoading ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Posting...
-                  </span>
-                ) : (
-                  'Post Answer'
-                )}
-              </button>
-            </form>
-          </div>
-        ) : (
-          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-10 sm:p-12 md:p-16 mt-16">
-            <div className="bg-blue-500/20 border-l-4 border-blue-400 text-blue-300 p-6 rounded-r-lg">
-              <h3 className="text-xl font-semibold mb-3">Want to answer this question?</h3>
-              <p className="mb-4">You must be logged in to post an answer</p>
-              <Link 
-                href="/login" 
-                className="inline-block bg-cyan-500 text-white px-6 py-2 rounded-lg hover:bg-cyan-400 font-semibold transition-colors"
-              >
-                Sign in or Create Account
-              </Link>
+              </form>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="question-detail-login-prompt">
+              <div className="question-detail-login-box">
+                <h3 className="question-detail-login-title">Want to answer this question?</h3>
+                <p className="question-detail-login-text">You must be logged in to post an answer</p>
+                <Link 
+                  href="/login" 
+                  className="question-detail-login-button"
+                >
+                  Sign in or Create Account
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

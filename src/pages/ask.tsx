@@ -63,14 +63,12 @@ export default function AskQuestion() {
     }
   ]);
 
-  // ✅ CHECK IF USER IS LOGGED IN
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const userData = localStorage.getItem('user');
       const token = localStorage.getItem('token');
 
       if (!userData || !token) {
-        // Not logged in - redirect to login
         router.push('/login?redirect=/ask');
         return;
       }
@@ -94,7 +92,6 @@ export default function AskQuestion() {
     );
   };
 
-  // Text editor functions for textarea
   const insertTextAtCursor = (before: string, after: string = '') => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -107,7 +104,6 @@ export default function AskQuestion() {
     setFormData({ ...formData, body: newText });
     setBodyLength(newText.length);
     
-    // Restore cursor position
     setTimeout(() => {
       textarea.focus();
       const newCursorPos = start + before.length + selectedText.length + after.length;
@@ -129,7 +125,7 @@ export default function AskQuestion() {
         currentLine = i;
         break;
       }
-      charCount += lines[i].length + 1; // +1 for newline
+      charCount += lines[i].length + 1;
     }
 
     lines.splice(currentLine, 0, markdown);
@@ -148,7 +144,6 @@ export default function AskQuestion() {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    // Focus the textarea
     textarea.focus();
     
     switch (type) {
@@ -165,10 +160,8 @@ export default function AskQuestion() {
         insertTextAtCursor('`', '`');
         break;
       case 'codeblock':
-        // Insert code block markdown
         const codeBlock = '```\n// Your code here\n```';
         insertTextAtCursor(codeBlock + '\n\n', '');
-        // Select the placeholder text
         setTimeout(() => {
           const start = textarea.selectionStart - codeBlock.length - 2;
           const end = start + '// Your code here'.length;
@@ -210,7 +203,6 @@ export default function AskQuestion() {
     }
   };
 
-  // Image upload handlers
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -218,14 +210,12 @@ export default function AskQuestion() {
     }
   };
 
-  // Compress and resize image
   const compressImage = (file: File, maxWidth: number = 1200, maxHeight: number = 1200, quality: number = 0.7): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          // Calculate new dimensions
           let width = img.width;
           let height = img.height;
           
@@ -239,7 +229,6 @@ export default function AskQuestion() {
             }
           }
           
-          // Create canvas and compress
           const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
@@ -252,7 +241,6 @@ export default function AskQuestion() {
           
           ctx.drawImage(img, 0, 0, width, height);
           
-          // Convert to blob with compression
           canvas.toBlob(
             (blob) => {
               if (!blob) {
@@ -260,9 +248,7 @@ export default function AskQuestion() {
                 return;
               }
               
-              // Check if compressed size is acceptable (max 500KB)
               if (blob.size > 500 * 1024) {
-                // Try again with lower quality
                 canvas.toBlob(
                   (smallerBlob) => {
                     if (!smallerBlob) {
@@ -275,7 +261,7 @@ export default function AskQuestion() {
                     reader2.readAsDataURL(smallerBlob);
                   },
                   file.type,
-                  0.5 // Lower quality
+                  0.5
                 );
               } else {
                 const reader2 = new FileReader();
@@ -299,14 +285,12 @@ export default function AskQuestion() {
   const validateAndSetImage = async (file: File) => {
     setImageError('');
     
-    // Check file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
     if (!validTypes.includes(file.type)) {
       setImageError('Only JPEG, PNG, and GIF images are supported.');
       return;
     }
 
-    // Check original file size (2 MiB = 2 * 1024 * 1024 bytes)
     const maxSize = 2 * 1024 * 1024;
     if (file.size > maxSize) {
       setImageError('Image size must be less than 2 MiB.');
@@ -316,7 +300,6 @@ export default function AskQuestion() {
     setImageFile(file);
     
     try {
-      // Compress and create preview
       const compressedDataUrl = await compressImage(file);
       setImagePreview(compressedDataUrl);
     } catch (error) {
@@ -370,21 +353,16 @@ export default function AskQuestion() {
       return;
     }
 
-    // Generate a unique ID for this image
     const imageId = `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    // Store the image data in state
     setImageDataMap(prev => ({
       ...prev,
       [imageId]: imagePreview
     }));
     
-    // Insert image markdown at cursor position (format: [your image](IMAGE:id))
-    // The IMAGE:id will be replaced with base64 data URI on submit
     const imageMarkdown = `[your image](IMAGE:${imageId})\n\n`;
     insertTextAtCursor(imageMarkdown, '');
     
-    // Close modal and reset
     setShowImageModal(false);
     setImageFile(null);
     setImagePreview(null);
@@ -411,7 +389,6 @@ export default function AskQuestion() {
       [e.target.name]: value,
     });
     
-    // Update body length if it's the body field
     if (e.target.name === 'body') {
       setBodyLength(value.length);
     }
@@ -423,14 +400,12 @@ export default function AskQuestion() {
     setError('');
 
     try {
-      // Validate inputs
       if (formData.title.length < 15) {
         setError('Title must be at least 15 characters');
         setLoading(false);
         return;
       }
 
-      // Body is already in markdown format from textarea
       const markdownBody = formData.body.trim();
       
       if (markdownBody.length < 50) {
@@ -450,7 +425,6 @@ export default function AskQuestion() {
         return;
       }
 
-      // Replace image placeholders with actual base64 data before sending
       let processedBody = markdownBody;
       Object.keys(imageDataMap).forEach(imageId => {
         processedBody = processedBody.replace(
@@ -459,17 +433,12 @@ export default function AskQuestion() {
         );
       });
 
-      console.log('Creating question with:', { title: formData.title, body: processedBody, tags });
-
       const response = await api.post('/questions', {
         title: formData.title,
         body: processedBody,
         tags,
       });
 
-      console.log('Question created:', response.data);
-
-      // Redirect to the new question
       router.push(`/questions/${response.data._id}`);
     } catch (err: any) {
       console.error('Error creating question:', err);
@@ -479,23 +448,21 @@ export default function AskQuestion() {
     }
   };
 
-  // Show loading while checking authentication
   if (isAuthChecking) {
     return (
-      <div className="min-h-screen bg-slate-900 py-8 px-4">
-        <div className="max-w-4xl mx-auto text-center py-16">
-          <div className="text-lg text-slate-400">Checking authentication...</div>
+      <div className="ask-loading-container">
+        <div className="ask-loading-content">
+          <div className="ask-loading-text">Checking authentication...</div>
         </div>
       </div>
     );
   }
 
-  // If not authenticated, this won't render (redirected to login)
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-900 py-8 px-4">
-        <div className="max-w-4xl mx-auto text-center py-16">
-          <div className="text-lg text-slate-400 mb-4">You must be logged in to ask a question</div>
+      <div className="ask-loading-container">
+        <div className="ask-loading-content">
+          <div className="ask-loading-text">You must be logged in to ask a question</div>
         </div>
       </div>
     );
@@ -506,7 +473,7 @@ export default function AskQuestion() {
       {/* Image Upload Modal */}
       {showImageModal && (
         <div 
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          className="ask-image-modal-overlay"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               handleCancelImage();
@@ -514,34 +481,34 @@ export default function AskQuestion() {
           }}
         >
           <div 
-            className="bg-slate-800 border-2 border-slate-700 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="ask-image-modal-container"
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             onPaste={handlePaste}
             onClick={(e) => e.stopPropagation()}
             tabIndex={-1}
           >
-            <div className="p-6">
+            <div className="ask-image-modal-content">
               {/* Warning Box */}
-              <div className="bg-amber-900/30 border border-amber-700/50 rounded p-4 mb-4">
-                <p className="text-sm text-white">
+              <div className="ask-image-warning-box">
+                <p className="ask-image-warning-text">
                   Images are useful in a post, but <strong>make sure the post is still clear without them</strong>. If you post images of code or error messages, copy and paste or type the actual code or message into the post directly.
                 </p>
               </div>
 
               {/* Upload Area */}
-              <div className="mb-4">
-                <p className="text-white mb-2">
+              <div className="ask-image-upload-section">
+                <p className="ask-image-upload-text">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-cyan-400 hover:text-cyan-300 underline"
+                    className="ask-image-browse-link"
                   >
                     Browse
                   </button>
                   , drag & drop, or paste an image.
                 </p>
-                <p className="text-sm text-slate-400 mb-4">
+                <p className="ask-image-upload-hint">
                   Supported file types: jpeg, png, gif (Max size 2 MiB)
                 </p>
 
@@ -555,55 +522,55 @@ export default function AskQuestion() {
 
                 {/* Drop Zone */}
                 <div
-                  className="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center hover:border-cyan-500/50 transition-colors cursor-pointer"
+                  className="ask-image-drop-zone"
                   onClick={() => fileInputRef.current?.click()}
                   onDragOver={handleDragOver}
                   onDrop={handleDrop}
                 >
                   {imagePreview ? (
-                    <div className="space-y-4">
+                    <div className="ask-image-preview-container">
                       <img 
                         src={imagePreview} 
                         alt="Preview" 
-                        className="max-h-64 mx-auto rounded"
+                        className="ask-image-preview"
                       />
-                      <p className="text-sm text-slate-400">{imageFile?.name}</p>
+                      <p className="ask-image-file-name">{imageFile?.name}</p>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <svg className="w-12 h-12 mx-auto text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="ask-image-empty-state">
+                      <svg className="ask-image-empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <p className="text-slate-400">Click to browse or drag and drop an image here</p>
+                      <p className="ask-image-empty-text">Click to browse or drag and drop an image here</p>
                     </div>
                   )}
                 </div>
 
                 {imageError && (
-                  <p className="text-red-400 text-sm mt-2">{imageError}</p>
+                  <p className="ask-image-error">{imageError}</p>
                 )}
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-between">
-                <div className="flex gap-4">
+              <div className="ask-image-modal-actions">
+                <div className="ask-image-modal-buttons">
                   <button
                     type="button"
                     onClick={handleAddImage}
                     disabled={!imageFile}
-                    className="text-cyan-400 hover:text-cyan-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors"
+                    className="ask-image-modal-button"
                   >
                     Add image
                   </button>
                   <button
                     type="button"
                     onClick={handleCancelImage}
-                    className="text-cyan-400 hover:text-cyan-300 transition-colors"
+                    className="ask-image-modal-button"
                   >
                     Cancel
                   </button>
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className="ask-image-modal-footer">
                   User contributions licensed under CC BY-SA (content policy)
                 </p>
               </div>
@@ -612,323 +579,323 @@ export default function AskQuestion() {
         </div>
       )}
 
-      <div className="min-h-screen bg-slate-900">
-      <Sidebar />
-      <main className="main-with-sidebar !pl-[20rem] lg:!pl-[22rem] xl:!pl-[24rem]">
-      <div className="max-w-[1400px] mx-auto px-8 sm:px-12 md:px-16 lg:px-20 xl:px-24 py-12 sm:py-16 md:py-20">
-        <div className="mb-10 sm:mb-12">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white">Ask question</h1>
-        </div>
+      <div className="ask-page-container">
+        <Sidebar />
+        <main className="main-with-sidebar !pl-[20rem] lg:!pl-[22rem] xl:!pl-[24rem]">
+          <div className="ask-main-container">
+            <div className="ask-page-title-container">
+              <h1 className="ask-page-title">Ask question</h1>
+            </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-10 gap-10 sm:gap-12 md:gap-16">
-          {/* Main Form Area - 70% */}
-          <div className="lg:col-span-7">
-            {error && (
-              <div className="bg-red-500/20 text-red-400 p-6 rounded-lg mb-6 border-2 border-red-500/50 text-lg">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-10 sm:space-y-12">
-              {/* Title */}
-              <div>
-                <label className="block text-xl sm:text-2xl font-bold text-white mb-3">
-                  Title<span className="text-red-400 ml-2">*</span>
-                </label>
-                <p className="text-base sm:text-lg text-slate-400 mb-4">
-                  Be specific and imagine you're asking a question to another person. Min 15 characters.
-                </p>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  className="w-full px-6 py-4 text-lg sm:text-xl bg-slate-800 border-2 border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                  required
-                />
-              </div>
-
-              {/* Body */}
-              <div>
-                <label className="block text-xl sm:text-2xl font-bold text-white mb-3">
-                  Body<span className="text-red-400 ml-2">*</span>
-                </label>
-                <p className="text-base sm:text-lg text-slate-400 mb-4">
-                  Include all the information someone would need to answer your question. Min 50 characters.
-                </p>
-                {/* Rich Text Editor Toolbar */}
-                <div className="flex items-center gap-2 mb-3 p-4 bg-slate-800 border-2 border-slate-600 rounded-t-lg">
-                  <select 
-                    className="bg-slate-700 text-white text-base px-4 py-2 rounded-lg border-2 border-slate-600 cursor-pointer"
-                    onChange={(e) => {
-                      handleFormat(e.target.value);
-                      e.target.value = 'normal';
-                    }}
-                  >
-                    <option value="normal">Normal</option>
-                    <option value="heading">Heading</option>
-                  </select>
-                  <button 
-                    type="button" 
-                    onClick={() => handleFormat('bold')}
-                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
-                    title="Bold"
-                  >
-                    <span className="font-bold text-lg">B</span>
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => handleFormat('italic')}
-                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
-                    title="Italic"
-                  >
-                    <span className="italic text-lg">I</span>
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => handleFormat('strikethrough')}
-                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
-                    title="Strikethrough"
-                  >
-                    <span className="text-lg">/</span>
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => handleFormat('strikethrough')}
-                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
-                    title="Section"
-                  >
-                    <span className="text-lg">§</span>
-                  </button>
-                  <div className="w-px h-8 bg-slate-600"></div>
-                  <button 
-                    type="button" 
-                    onClick={() => handleFormat('code')}
-                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
-                    title="Inline code"
-                  >
-                    <span className="text-base">&lt;&gt;</span>
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => handleFormat('image')}
-                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
-                    title="Insert image"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => handleFormat('link')}
-                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
-                    title="Insert link"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                    </svg>
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => handleFormat('blockquote')}
-                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
-                    title="Blockquote"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                    </svg>
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => handleFormat('heading')}
-                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
-                    title="Heading"
-                  >
-                    <span className="text-base font-bold">#</span>
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleFormat('numbered-list');
-                    }}
-                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
-                    title="Numbered list"
-                  >
-                    <MdFormatListNumbered className="w-5 h-5" />
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleFormat('list');
-                    }}
-                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
-                    title="Bullet list"
-                  >
-                    <MdFormatListBulleted className="w-5 h-5" />
-                  </button>
-                  <div className="w-px h-8 bg-slate-600"></div>
-                  <button 
-                    type="button" 
-                    onClick={() => handleFormat('hr')}
-                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
-                    title="Horizontal rule"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => handleFormat('codeblock')}
-                    className="p-3 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors"
-                    title="Code block"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                    </svg>
-                  </button>
-                </div>
-                <textarea
-                  ref={textareaRef}
-                  name="body"
-                  value={formData.body}
-                  onChange={handleChange}
-                  placeholder="Include all the information someone would need to answer your question..."
-                  className="w-full min-h-[500px] sm:min-h-[600px] px-6 py-4 bg-slate-800 border-2 border-slate-600 border-t-0 rounded-b-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 resize-y text-lg sm:text-xl font-mono"
-                  style={{ whiteSpace: 'pre-wrap' }}
-                  required
-                />
-              </div>
-
-              {/* Tags */}
-              <div>
-                <label className="block text-xl sm:text-2xl font-bold text-white mb-3">
-                  Tags<span className="text-red-400 ml-2">*</span>
-                </label>
-                <p className="text-base sm:text-lg text-slate-400 mb-4">
-                  Add up to 5 tags to describe what your question is about. Start typing to see suggestions.
-                </p>
-                <div className="relative">
-                  <input
-                    type="text"
-                    name="tags"
-                    value={formData.tags}
-                    onChange={handleChange}
-                    placeholder="e.g. (postgresql xml javascript)"
-                    className="w-full px-6 py-4 pl-12 text-lg sm:text-xl bg-slate-800 border-2 border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                    required
-                  />
-                  <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Select where to post */}
-              <div>
-                <label className="block text-xl sm:text-2xl font-bold text-white mb-3">
-                  Select where your question should be posted.<span className="text-red-400 ml-2">*</span>
-                </label>
-                <select className="w-full px-6 py-4 text-lg sm:text-xl bg-slate-800 border-2 border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
-                  <option>Stack Overflow (External API)</option>
-                </select>
-              </div>
-
-              {/* Submit */}
-              <div className="pt-6">
-                <button
-                  type="submit"
-                  disabled={loading || formData.title.length < 15 || bodyLength < 50 || formData.tags.split(',').filter(t => t.trim().length > 0).length === 0}
-                  className="bg-cyan-500 text-white font-bold py-4 px-8 text-lg sm:text-xl rounded-lg hover:bg-cyan-400 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40"
-                >
-                  {loading ? 'Posting...' : 'Post your question'}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {/* Right Sidebar - 30% */}
-          <div className="lg:col-span-3">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">Draft your question</h2>
-              <p className="text-base sm:text-lg text-slate-400 mb-6">
-                The community is here to help you with specific coding, algorithm, or language problems.
-              </p>
-
-              {/* Accordion Sections */}
-              <div className="space-y-0">
-                {accordionSections.map((section) => (
-                  <div key={section.id} className="border-b-2 border-slate-700">
-                    <button
-                      type="button"
-                      onClick={() => toggleAccordion(section.id)}
-                      className="w-full flex items-center justify-between py-4 text-left"
-                    >
-                      <span className={`text-lg sm:text-xl font-semibold ${section.isOpen ? 'text-cyan-400' : 'text-slate-400'}`}>
-                        {section.title}
-                      </span>
-                      <svg
-                        className={`w-6 h-6 text-slate-400 transition-transform ${section.isOpen ? 'rotate-180' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {section.isOpen && (
-                      <div className="pb-4 space-y-3">
-                        {section.content.map((item, index) => (
-                          <div key={index} className="flex items-start gap-3 text-base sm:text-lg text-slate-300">
-                            <span className="text-slate-500 mt-1">•</span>
-                            <span>{item}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+            <div className="ask-grid-container">
+              {/* Main Form Area */}
+              <div className="ask-form-section">
+                {error && (
+                  <div className="ask-error-message">
+                    {error}
                   </div>
-                ))}
+                )}
+
+                <form onSubmit={handleSubmit} className="ask-form">
+                  {/* Title */}
+                  <div className="ask-field-group">
+                    <label className="ask-label">
+                      Title<span className="ask-label-required">*</span>
+                    </label>
+                    <p className="ask-field-description">
+                      Be specific and imagine you're asking a question to another person. Min 15 characters.
+                    </p>
+                    <input
+                      type="text"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleChange}
+                      className="ask-input"
+                      required
+                    />
+                  </div>
+
+                  {/* Body */}
+                  <div className="ask-field-group">
+                    <label className="ask-label">
+                      Body<span className="ask-label-required">*</span>
+                    </label>
+                    <p className="ask-field-description">
+                      Include all the information someone would need to answer your question. Min 50 characters.
+                    </p>
+                    {/* Rich Text Editor Toolbar */}
+                    <div className="ask-toolbar">
+                      <select 
+                        className="ask-toolbar-select"
+                        onChange={(e) => {
+                          handleFormat(e.target.value);
+                          e.target.value = 'normal';
+                        }}
+                      >
+                        <option value="normal">Normal</option>
+                        <option value="heading">Heading</option>
+                      </select>
+                      <button 
+                        type="button" 
+                        onClick={() => handleFormat('bold')}
+                        className="ask-toolbar-button"
+                        title="Bold"
+                      >
+                        <span className="ask-toolbar-button-text font-bold">B</span>
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => handleFormat('italic')}
+                        className="ask-toolbar-button"
+                        title="Italic"
+                      >
+                        <span className="ask-toolbar-button-text italic">I</span>
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => handleFormat('strikethrough')}
+                        className="ask-toolbar-button"
+                        title="Strikethrough"
+                      >
+                        <span className="ask-toolbar-button-text">/</span>
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => handleFormat('strikethrough')}
+                        className="ask-toolbar-button"
+                        title="Section"
+                      >
+                        <span className="ask-toolbar-button-text">§</span>
+                      </button>
+                      <div className="ask-toolbar-separator"></div>
+                      <button 
+                        type="button" 
+                        onClick={() => handleFormat('code')}
+                        className="ask-toolbar-button"
+                        title="Inline code"
+                      >
+                        <span className="ask-toolbar-button-text">&lt;&gt;</span>
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => handleFormat('image')}
+                        className="ask-toolbar-button"
+                        title="Insert image"
+                      >
+                        <svg className="ask-toolbar-button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => handleFormat('link')}
+                        className="ask-toolbar-button"
+                        title="Insert link"
+                      >
+                        <svg className="ask-toolbar-button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => handleFormat('blockquote')}
+                        className="ask-toolbar-button"
+                        title="Blockquote"
+                      >
+                        <svg className="ask-toolbar-button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => handleFormat('heading')}
+                        className="ask-toolbar-button"
+                        title="Heading"
+                      >
+                        <span className="ask-toolbar-button-text font-bold">#</span>
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleFormat('numbered-list');
+                        }}
+                        className="ask-toolbar-button"
+                        title="Numbered list"
+                      >
+                        <MdFormatListNumbered className="ask-toolbar-button-icon" />
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleFormat('list');
+                        }}
+                        className="ask-toolbar-button"
+                        title="Bullet list"
+                      >
+                        <MdFormatListBulleted className="ask-toolbar-button-icon" />
+                      </button>
+                      <div className="ask-toolbar-separator"></div>
+                      <button 
+                        type="button" 
+                        onClick={() => handleFormat('hr')}
+                        className="ask-toolbar-button"
+                        title="Horizontal rule"
+                      >
+                        <svg className="ask-toolbar-button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => handleFormat('codeblock')}
+                        className="ask-toolbar-button"
+                        title="Code block"
+                      >
+                        <svg className="ask-toolbar-button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                      </button>
+                    </div>
+                    <textarea
+                      ref={textareaRef}
+                      name="body"
+                      value={formData.body}
+                      onChange={handleChange}
+                      placeholder="Include all the information someone would need to answer your question..."
+                      className="ask-textarea"
+                      style={{ whiteSpace: 'pre-wrap' }}
+                      required
+                    />
+                  </div>
+
+                  {/* Tags */}
+                  <div className="ask-field-group">
+                    <label className="ask-label">
+                      Tags<span className="ask-label-required">*</span>
+                    </label>
+                    <p className="ask-field-description">
+                      Add up to 5 tags to describe what your question is about. Start typing to see suggestions.
+                    </p>
+                    <div className="ask-tags-wrapper">
+                      <input
+                        type="text"
+                        name="tags"
+                        value={formData.tags}
+                        onChange={handleChange}
+                        placeholder="e.g. (postgresql xml javascript)"
+                        className="ask-tags-input"
+                        required
+                      />
+                      <svg className="ask-tags-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Select where to post */}
+                  <div className="ask-field-group">
+                    <label className="ask-label">
+                      Select where your question should be posted.<span className="ask-label-required">*</span>
+                    </label>
+                    <select className="ask-select">
+                      <option>Stack Overflow (External API)</option>
+                    </select>
+                  </div>
+
+                  {/* Submit */}
+                  <div className="ask-submit-container">
+                    <button
+                      type="submit"
+                      disabled={loading || formData.title.length < 15 || bodyLength < 50 || formData.tags.split(',').filter(t => t.trim().length > 0).length === 0}
+                      className="ask-submit-button"
+                    >
+                      {loading ? 'Posting...' : 'Post your question'}
+                    </button>
+                  </div>
+                </form>
               </div>
 
-              {/* Helpful links */}
-              <div className="mt-6 pt-6 border-t-2 border-slate-700">
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Helpful links</h3>
-                <div className="space-y-2">
-                  <a href="#" className="block text-base sm:text-lg text-cyan-400 hover:text-cyan-300">
-                    how to ask a good question here
-                  </a>
-                  <a href="#" className="block text-base sm:text-lg text-cyan-400 hover:text-cyan-300">
-                    help center
-                  </a>
-                  <a href="#" className="block text-base sm:text-lg text-cyan-400 hover:text-cyan-300">
-                    meta
-                  </a>
-                </div>
-              </div>
-
-              {/* Help us improve */}
-              <div className="mt-6 pt-6 border-t-2 border-slate-700">
-                <div className="bg-slate-800/50 border-2 border-slate-700 rounded-lg p-4">
-                  <p className="text-sm sm:text-base text-slate-400">
-                    Help us improve how to ask a question by{' '}
-                    <a href="#" className="text-cyan-400 hover:text-cyan-300">
-                      providing feedback or reporting a bug
-                    </a>
-                    <svg className="inline w-4 h-4 ml-1 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
+              {/* Right Sidebar */}
+              <div className="ask-sidebar-section">
+                <div>
+                  <h2 className="ask-sidebar-title">Draft your question</h2>
+                  <p className="ask-sidebar-description">
+                    The community is here to help you with specific coding, algorithm, or language problems.
                   </p>
+
+                  {/* Accordion Sections */}
+                  <div className="ask-accordion-container">
+                    {accordionSections.map((section) => (
+                      <div key={section.id} className="ask-accordion-item">
+                        <button
+                          type="button"
+                          onClick={() => toggleAccordion(section.id)}
+                          className="ask-accordion-button"
+                        >
+                          <span className={`ask-accordion-title ${section.isOpen ? 'open' : ''}`}>
+                            {section.title}
+                          </span>
+                          <svg
+                            className={`ask-accordion-icon ${section.isOpen ? 'open' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {section.isOpen && (
+                          <div className="ask-accordion-content">
+                            {section.content.map((item, index) => (
+                              <div key={index} className="ask-accordion-list-item">
+                                <span className="ask-accordion-bullet">•</span>
+                                <span>{item}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Helpful links */}
+                  <div className="ask-links-section">
+                    <h3 className="ask-links-title">Helpful links</h3>
+                    <div className="ask-links-list">
+                      <a href="#" className="ask-link">
+                        how to ask a good question here
+                      </a>
+                      <a href="#" className="ask-link">
+                        help center
+                      </a>
+                      <a href="#" className="ask-link">
+                        meta
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Help us improve */}
+                  <div className="ask-feedback-section">
+                    <div className="ask-feedback-box">
+                      <p className="ask-feedback-text">
+                        Help us improve how to ask a question by{' '}
+                        <a href="#" className="ask-feedback-link">
+                          providing feedback or reporting a bug
+                        </a>
+                        <svg className="ask-feedback-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </main>
       </div>
-      </main>
-    </div>
     </>
   );
 }

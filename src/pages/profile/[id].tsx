@@ -32,7 +32,7 @@ export default function Profile() {
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ⭐ NEW - Role change state
+  // Role change state
   const [selectedRole, setSelectedRole] = useState<string>('user');
   const [isChangingRole, setIsChangingRole] = useState(false);
   const [roleChangeSuccess, setRoleChangeSuccess] = useState('');
@@ -72,7 +72,7 @@ export default function Profile() {
       const response = await api.get(`/users/${id}`);
       setUser(response.data);
       setUserRole(response.data.role);
-      setSelectedRole(response.data.role); // ⭐ NEW
+      setSelectedRole(response.data.role);
       setEditData({
         username: response.data.username,
         bio: response.data.bio || '',
@@ -80,16 +80,13 @@ export default function Profile() {
         title: response.data.title || ''
       });
       
-      // Set profile image preview if user has a profile picture
       if (response.data.profilePicture) {
         setProfileImagePreview(response.data.profilePicture);
       }
 
-      // Fetch user's questions
       const questionsRes = await api.get(`/users/${id}/questions`);
       setQuestions(questionsRes.data.questions || []);
 
-      // Fetch user's answers
       const answersRes = await api.get(`/users/${id}/answers`);
       setAnswers(answersRes.data.answers || []);
 
@@ -105,14 +102,12 @@ export default function Profile() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
       const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
       if (!validTypes.includes(file.type)) {
         setError('Only JPEG, PNG, and GIF images are supported.');
         return;
       }
 
-      // Validate file size (2 MiB)
       const maxSize = 2 * 1024 * 1024;
       if (file.size > maxSize) {
         setError('Image size must be less than 2 MiB.');
@@ -122,7 +117,6 @@ export default function Profile() {
       setProfileImage(file);
       setError('');
 
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImagePreview(reader.result as string);
@@ -144,7 +138,6 @@ export default function Profile() {
     try {
       let profilePicture = null;
       
-      // Convert image to base64 if a new image was selected
       if (profileImage) {
         const reader = new FileReader();
         profilePicture = await new Promise<string>((resolve, reject) => {
@@ -168,7 +161,6 @@ export default function Profile() {
       setIsEditing(false);
       setProfileImage(null);
       
-      // Update preview if profile picture was updated
       if (response.data.profilePicture) {
         setProfileImagePreview(response.data.profilePicture);
       }
@@ -180,7 +172,6 @@ export default function Profile() {
     }
   };
 
-  // ⭐ NEW - Handle role change
   const handleChangeRole = async (newRole: string) => {
     if (newRole === userRole) {
       setError('User already has this role');
@@ -202,7 +193,6 @@ export default function Profile() {
       setSelectedRole(response.data.user.role);
       setRoleChangeSuccess(`Role successfully changed to ${newRole}!`);
       
-      // Update localStorage if it's the current user
       if (isOwnProfile && typeof window !== 'undefined') {
         const userData = localStorage.getItem('user');
         if (userData) {
@@ -217,7 +207,6 @@ export default function Profile() {
         }
       }
 
-      // Clear success message after 3 seconds
       setTimeout(() => setRoleChangeSuccess(''), 3000);
     } catch (err: any) {
       console.error('Error changing role:', err);
@@ -229,9 +218,9 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 py-8 px-4">
-        <div className="max-w-4xl mx-auto text-center py-8">
-          <div className="text-lg text-slate-400">Loading profile...</div>
+      <div className="profile-detail-loading">
+        <div className="profile-detail-loading-content">
+          <div className="profile-detail-loading-text">Loading profile...</div>
         </div>
       </div>
     );
@@ -239,10 +228,10 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-900 py-8 px-4">
-        <div className="max-w-4xl mx-auto text-center py-8">
-          <div className="text-lg text-slate-400">User not found</div>
-          <Link href="/questions" className="text-cyan-400 font-semibold hover:text-cyan-300 mt-4 inline-block">
+      <div className="profile-detail-loading">
+        <div className="profile-detail-loading-content">
+          <div className="profile-detail-loading-text">User not found</div>
+          <Link href="/questions" className="profile-detail-back-link">
             ← Back to Questions
           </Link>
         </div>
@@ -250,7 +239,6 @@ export default function Profile() {
     );
   }
 
-  // Common props for all profile views
   const commonProps = {
     user,
     userRole,
@@ -266,14 +254,12 @@ export default function Profile() {
     error,
     setError,
     onUpdateProfile: handleUpdateProfile,
-    // ⭐ NEW
     selectedRole,
     isChangingRole,
     onChangeRole: handleChangeRole,
-    canChangeRole: isOwnProfile // Only users can change their own role, no one can change others
+    canChangeRole: isOwnProfile
   };
 
-  // Format date helper
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -288,79 +274,78 @@ export default function Profile() {
     return date.toLocaleDateString();
   };
 
-  // Calculate member since
   const memberSince = user.createdAt ? formatDate(user.createdAt) : 'N/A';
 
   // If editing, show edit profile page
   if (isEditing) {
     return (
-      <div className="min-h-screen bg-slate-900 py-8 px-4">
-        <div className="max-w-6xl mx-auto">
+      <div className="profile-detail-edit-container">
+        <div className="profile-detail-edit-main">
           {error && (
-            <div className="bg-red-500/20 text-red-400 p-4 rounded-lg mb-6 border border-red-500/50">
+            <div className="profile-detail-error">
               {error}
             </div>
           )}
 
-          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl shadow-lg shadow-black/30 p-6 sm:p-8">
-            <h1 className="text-2xl font-bold text-white mb-6">Public information</h1>
+          <div className="profile-detail-edit-form-container">
+            <h1 className="profile-detail-edit-title">Public information</h1>
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="profile-detail-edit-grid">
               {/* Left Column - Settings Navigation */}
-              <div className="lg:col-span-1">
-                <div className="space-y-6">
+              <div className="profile-detail-edit-sidebar">
+                <div className="profile-detail-edit-settings-section">
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-400 uppercase mb-3">Email Settings</h3>
-                    <ul className="space-y-2 text-sm">
-                      <li><a href="#" className="text-cyan-400 hover:text-cyan-300">Edit email settings</a></li>
-                      <li><a href="#" className="text-slate-300 hover:text-white">Tag watching & ignoring</a></li>
-                      <li><a href="#" className="text-slate-300 hover:text-white">Community digests</a></li>
-                      <li><a href="#" className="text-slate-300 hover:text-white">Question subscriptions</a></li>
+                    <h3 className="profile-detail-edit-settings-group-title">Email Settings</h3>
+                    <ul className="profile-detail-edit-settings-list">
+                      <li><a href="#" className="profile-detail-edit-settings-link cyan">Edit email settings</a></li>
+                      <li><a href="#" className="profile-detail-edit-settings-link">Tag watching & ignoring</a></li>
+                      <li><a href="#" className="profile-detail-edit-settings-link">Community digests</a></li>
+                      <li><a href="#" className="profile-detail-edit-settings-link">Question subscriptions</a></li>
                     </ul>
                   </div>
                   
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-400 uppercase mb-3">Site Settings</h3>
-                    <ul className="space-y-2 text-sm">
-                      <li><a href="#" className="text-slate-300 hover:text-white">Preferences</a></li>
-                      <li><a href="#" className="text-slate-300 hover:text-white">Flair</a></li>
-                      <li><a href="#" className="text-slate-300 hover:text-white">Hide communities</a></li>
+                    <h3 className="profile-detail-edit-settings-group-title">Site Settings</h3>
+                    <ul className="profile-detail-edit-settings-list">
+                      <li><a href="#" className="profile-detail-edit-settings-link">Preferences</a></li>
+                      <li><a href="#" className="profile-detail-edit-settings-link">Flair</a></li>
+                      <li><a href="#" className="profile-detail-edit-settings-link">Hide communities</a></li>
                     </ul>
                   </div>
                   
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-400 uppercase mb-3">Access</h3>
-                    <ul className="space-y-2 text-sm">
-                      <li><a href="#" className="text-slate-300 hover:text-white">Collectives</a></li>
-                      <li><a href="#" className="text-slate-300 hover:text-white">Logins</a></li>
-                      <li><a href="#" className="text-slate-300 hover:text-white">Data dump access</a></li>
-                      <li><a href="#" className="text-slate-300 hover:text-white">RSS feeds</a></li>
+                    <h3 className="profile-detail-edit-settings-group-title">Access</h3>
+                    <ul className="profile-detail-edit-settings-list">
+                      <li><a href="#" className="profile-detail-edit-settings-link">Collectives</a></li>
+                      <li><a href="#" className="profile-detail-edit-settings-link">Logins</a></li>
+                      <li><a href="#" className="profile-detail-edit-settings-link">Data dump access</a></li>
+                      <li><a href="#" className="profile-detail-edit-settings-link">RSS feeds</a></li>
                     </ul>
                   </div>
                   
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-400 uppercase mb-3">API</h3>
-                    <ul className="space-y-2 text-sm">
-                      <li><a href="#" className="text-slate-300 hover:text-white">Authorized applications</a></li>
+                    <h3 className="profile-detail-edit-settings-group-title">API</h3>
+                    <ul className="profile-detail-edit-settings-list">
+                      <li><a href="#" className="profile-detail-edit-settings-link">Authorized applications</a></li>
                     </ul>
                   </div>
                 </div>
               </div>
 
               {/* Right Column - Profile Edit Form */}
-              <div className="lg:col-span-2">
-                <form onSubmit={handleUpdateProfile} className="space-y-6">
+              <div className="profile-detail-edit-content">
+                <form onSubmit={handleUpdateProfile} className="profile-detail-edit-form">
                   {/* Profile Image */}
-                  <div>
-                    <div className="w-32 h-32 bg-gradient-to-br from-cyan-500 to-slate-700 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                  <div className="profile-detail-edit-image-section">
+                    <div className="profile-detail-edit-image-preview">
                       {profileImagePreview ? (
                         <img 
                           src={profileImagePreview} 
                           alt="Profile" 
-                          className="w-full h-full object-cover"
+                          className="profile-detail-edit-image-preview-img"
                         />
                       ) : (
-                        <span className="text-4xl font-bold text-white">
+                        <span className="profile-detail-edit-image-preview-text">
                           {user.username?.charAt(0).toUpperCase() || 'U'}
                         </span>
                       )}
@@ -370,71 +355,71 @@ export default function Profile() {
                       ref={fileInputRef}
                       accept="image/jpeg,image/jpg,image/png,image/gif"
                       onChange={handleImageChange}
-                      className="hidden"
+                      className="profile-detail-edit-image-input"
                     />
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 text-sm font-medium transition-colors"
+                      className="profile-detail-edit-image-button"
                     >
                       Change picture
                     </button>
                   </div>
 
                   {/* Display Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Display name</label>
+                  <div className="profile-detail-edit-field-group">
+                    <label className="profile-detail-edit-label">Display name</label>
                     <input
                       type="text"
                       value={editData.username}
                       onChange={(e) => setEditData({ ...editData, username: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                      className="profile-detail-edit-input"
                       required
                     />
                   </div>
 
                   {/* Location */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Location</label>
+                  <div className="profile-detail-edit-field-group">
+                    <label className="profile-detail-edit-label">Location</label>
                     <input
                       type="text"
                       value={editData.location}
                       onChange={(e) => setEditData({ ...editData, location: e.target.value })}
                       placeholder="Add location"
-                      className="w-full px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                      className="profile-detail-edit-input"
                     />
                   </div>
 
                   {/* Title */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Title</label>
+                  <div className="profile-detail-edit-field-group">
+                    <label className="profile-detail-edit-label">Title</label>
                     <input
                       type="text"
                       value={editData.title}
                       onChange={(e) => setEditData({ ...editData, title: e.target.value })}
                       placeholder="No title has been set"
-                      className="w-full px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                      className="profile-detail-edit-input"
                     />
                   </div>
 
                   {/* About Me */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">About me</label>
+                  <div className="profile-detail-edit-field-group">
+                    <label className="profile-detail-edit-label">About me</label>
                     <textarea
                       value={editData.bio}
                       onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
                       placeholder="Tell us about yourself..."
                       rows={8}
-                      className="w-full px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                      className="profile-detail-edit-textarea"
                     />
                   </div>
 
                   {/* Buttons */}
-                  <div className="flex gap-4">
+                  <div className="profile-detail-edit-buttons">
                     <button
                       type="submit"
                       disabled={isSaving}
-                      className="bg-cyan-500 text-white px-6 py-2.5 rounded-lg hover:bg-cyan-400 font-semibold transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                      className="profile-detail-edit-save"
                     >
                       {isSaving ? 'Saving...' : 'Save profile'}
                     </button>
@@ -445,7 +430,7 @@ export default function Profile() {
                         setProfileImage(null);
                         setProfileImagePreview(user.profilePicture || null);
                       }}
-                      className="bg-slate-700 text-white px-6 py-2.5 rounded-lg hover:bg-slate-600 font-semibold transition-colors"
+                      className="profile-detail-edit-cancel"
                     >
                       Cancel
                     </button>
@@ -460,53 +445,49 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="profile-detail-container">
+      <div className="profile-detail-main">
         {error && (
-          <div className="bg-red-500/20 text-red-400 p-4 rounded-lg mb-6 border border-red-500/50">
+          <div className="profile-detail-error">
             {error}
           </div>
         )}
 
         {roleChangeSuccess && (
-          <div className="bg-green-500/20 text-green-400 p-4 rounded-lg mb-6 border border-green-500/50">
+          <div className="profile-detail-success">
             {roleChangeSuccess}
           </div>
         )}
 
         {/* Profile Header */}
-        <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl shadow-lg shadow-black/30 p-6 mb-4">
-          <div className="flex gap-6 mb-6">
+        <div className="profile-detail-header">
+          <div className="profile-detail-header-content">
             {/* Avatar */}
-            <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-cyan-500 to-slate-700 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <div className="profile-detail-avatar">
               {user.profilePicture || profileImagePreview ? (
                 <img 
                   src={user.profilePicture || profileImagePreview || ''} 
                   alt={user.username} 
-                  className="w-full h-full object-cover"
+                  className="profile-detail-avatar-img"
                 />
               ) : (
-                <span className="text-4xl sm:text-5xl font-bold text-white">
+                <span className="profile-detail-avatar-text">
                   {user.username?.charAt(0).toUpperCase() || 'U'}
                 </span>
               )}
             </div>
             
             {/* User Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-2 flex-wrap">
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">{user.username}</h1>
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold text-white ${
-                  userRole === 'admin' ? 'bg-red-500' :
-                  userRole === 'expert' ? 'bg-purple-500' :
-                  'bg-slate-600'
-                }`}>
+            <div className="profile-detail-user-info">
+              <div className="profile-detail-user-header">
+                <h1 className="profile-detail-username">{user.username}</h1>
+                <span className={`profile-detail-role-badge ${userRole || 'user'}`}>
                   {userRole === 'admin' ? '👨‍💼 Admin' :
                    userRole === 'expert' ? '👨‍🏫 Expert' :
                    '👨‍🎓 Student'}
                 </span>
               </div>
-              <div className="space-y-1 text-sm text-slate-400">
+              <div className="profile-detail-user-meta">
                 <p>Member since {memberSince}</p>
                 <p>Last seen {memberSince}</p>
                 <p>Visited 1 day, 1 consecutive</p>
@@ -514,53 +495,44 @@ export default function Profile() {
             </div>
 
             {/* Action Buttons */}
-<div className="flex flex-col gap-2">
-  {isOwnProfile && (
-    <button
-      onClick={() => setIsEditing(true)}
-      className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 text-sm font-medium transition-colors whitespace-nowrap"
-    >
-      Edit profile
-    </button>
-  )}
-  {/* Only users can change their own role, no one can change others' roles */}
-  {isOwnProfile && (
-    <div className="bg-slate-700 rounded-lg p-2">
-      <label className="text-xs font-medium text-slate-300 mb-1 block">Change My Role:</label>
-      <select
-        value={selectedRole}
-        onChange={(e) => handleChangeRole(e.target.value)}
-        disabled={isChangingRole}
-        className="w-full px-2 py-1.5 bg-slate-600 border border-slate-500 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <option value="user">👨‍🎓 Student</option>
-        <option value="expert">👨‍🏫 Expert</option>
-        <option value="admin">👨‍💼 Admin</option>
-      </select>
-    </div>
-  )}
-</div>
+            <div className="profile-detail-actions">
+              {isOwnProfile && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="profile-detail-edit-button"
+                >
+                  Edit profile
+                </button>
+              )}
+              {isOwnProfile && (
+                <div className="profile-detail-role-select-wrapper">
+                  <label className="profile-detail-role-select-label">Change My Role:</label>
+                  <select
+                    value={selectedRole}
+                    onChange={(e) => handleChangeRole(e.target.value)}
+                    disabled={isChangingRole}
+                    className="profile-detail-role-select"
+                  >
+                    <option value="user">👨‍🎓 Student</option>
+                    <option value="expert">👨‍🏫 Expert</option>
+                    <option value="admin">👨‍💼 Admin</option>
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 border-b border-slate-700">
+          <div className="profile-detail-tabs">
             <button
               onClick={() => setActiveTab('profile')}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === 'profile'
-                  ? 'text-cyan-400 border-b-2 border-cyan-400'
-                  : 'text-slate-400 hover:text-white'
-              }`}
+              className={`profile-detail-tab ${activeTab === 'profile' ? 'active' : ''}`}
             >
               Profile
             </button>
             <button
               onClick={() => setActiveTab('activity')}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === 'activity'
-                  ? 'text-cyan-400 border-b-2 border-cyan-400'
-                  : 'text-slate-400 hover:text-white'
-              }`}
+              className={`profile-detail-tab ${activeTab === 'activity' ? 'active' : ''}`}
             >
               Activity
             </button>
@@ -568,21 +540,13 @@ export default function Profile() {
               <>
                 <button
                   onClick={() => setActiveTab('saves')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    activeTab === 'saves'
-                      ? 'text-cyan-400 border-b-2 border-cyan-400'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
+                  className={`profile-detail-tab ${activeTab === 'saves' ? 'active' : ''}`}
                 >
                   Saves
                 </button>
                 <button
                   onClick={() => setActiveTab('settings')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    activeTab === 'settings'
-                      ? 'text-cyan-400 border-b-2 border-cyan-400'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
+                  className={`profile-detail-tab ${activeTab === 'settings' ? 'active' : ''}`}
                 >
                   Settings
                 </button>
@@ -593,21 +557,17 @@ export default function Profile() {
 
         {/* Content Area - Two Column Layout */}
         {activeTab === 'profile' && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="profile-detail-content-grid">
             {/* Left Sidebar - Sub Navigation */}
-            <div className="lg:col-span-1">
-              <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl shadow-lg shadow-black/30 p-4">
-                <h2 className="text-lg font-bold text-white mb-4">Summary</h2>
-                <nav className="space-y-1">
+            <div className="profile-detail-content-sidebar">
+              <div className="profile-detail-sub-nav">
+                <h2 className="profile-detail-sub-nav-title">Summary</h2>
+                <nav className="profile-detail-sub-nav-list">
                   {['summary', 'answers', 'questions', 'tags'].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveSubTab(tab as any)}
-                      className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
-                        activeSubTab === tab
-                          ? 'bg-cyan-500/20 text-cyan-400 font-medium'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                      }`}
+                      className={`profile-detail-sub-nav-button ${activeSubTab === tab ? 'active' : ''}`}
                     >
                       {tab.charAt(0).toUpperCase() + tab.slice(1)}
                     </button>
@@ -617,67 +577,67 @@ export default function Profile() {
             </div>
 
             {/* Right Content */}
-            <div className="lg:col-span-3">
+            <div className="profile-detail-content-main">
               {activeSubTab === 'summary' && (
-                <div className="space-y-4">
+                <div className="profile-detail-section">
                   {/* Info Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-6">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-                          <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="profile-detail-info-cards">
+                    <div className="profile-detail-info-card">
+                      <div className="profile-detail-info-card-header">
+                        <div className="profile-detail-info-card-icon">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                           </svg>
                         </div>
-                        <h3 className="text-sm font-semibold text-white">Reputation</h3>
+                        <h3 className="profile-detail-info-card-title">Reputation</h3>
                       </div>
-                      <p className="text-sm text-slate-400 mb-2">
+                      <p className="profile-detail-info-card-description">
                         Reputation is how the community thanks you. Upvotes earn reputation and unlock privileges.
                       </p>
-                      <a href="#" className="text-cyan-400 hover:text-cyan-300 text-sm">Learn more about reputation</a>
+                      <a href="#" className="profile-detail-info-card-link">Learn more about reputation</a>
                     </div>
 
-                    <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-6">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-                          <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="profile-detail-info-card">
+                      <div className="profile-detail-info-card-header">
+                        <div className="profile-detail-info-card-icon">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                           </svg>
                         </div>
-                        <h3 className="text-sm font-semibold text-white">Badges</h3>
+                        <h3 className="profile-detail-info-card-title">Badges</h3>
                       </div>
-                      <p className="text-sm text-slate-400 mb-2">
+                      <p className="profile-detail-info-card-description">
                         Earn badges for helpful actions. Badges are digital flair for helpful participation.
                       </p>
-                      <button className="bg-cyan-500 text-white px-4 py-2 rounded-lg hover:bg-cyan-400 text-sm font-medium transition-colors">
+                      <button className="profile-detail-info-card-button">
                         Take the Tour
                       </button>
                     </div>
 
-                    <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-6">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-                          <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="profile-detail-info-card">
+                      <div className="profile-detail-info-card-header">
+                        <div className="profile-detail-info-card-icon">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                           </svg>
                         </div>
-                        <h3 className="text-sm font-semibold text-white">Impact</h3>
+                        <h3 className="profile-detail-info-card-title">Impact</h3>
                       </div>
-                      <p className="text-sm text-slate-400">
+                      <p className="profile-detail-info-card-description">
                         Your posts and actions help thousands of people find answers.
                       </p>
                     </div>
                   </div>
 
                   {/* Answers Section */}
-                  <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-bold text-white">Answers</h2>
-                      <div className="flex gap-2 text-sm">
+                  <div className="profile-detail-section">
+                    <div className="profile-detail-section-header">
+                      <h2 className="profile-detail-section-title">Answers</h2>
+                      <div className="profile-detail-section-filters">
                         {['Score', 'Activity', 'Newest', 'Views'].map((filter) => (
                           <button
                             key={filter}
-                            className="px-3 py-1 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+                            className="profile-detail-filter-button"
                           >
                             {filter}
                           </button>
@@ -685,22 +645,22 @@ export default function Profile() {
                       </div>
                     </div>
                     {answers.length === 0 ? (
-                      <p className="text-slate-400">No answers yet</p>
+                      <p className="profile-detail-empty-state">No answers yet</p>
                     ) : (
-                      <div className="space-y-3">
+                      <div className="profile-detail-items-list">
                         {answers.slice(0, 5).map((answer: any) => (
-                          <div key={answer._id} className="p-4 bg-slate-700/50 rounded-lg border border-slate-600">
+                          <div key={answer._id} className="profile-detail-item-card">
                             <Link
                               href={`/questions/${answer.questionId._id}`}
-                              className="text-cyan-400 hover:text-cyan-300 font-medium"
+                              className="profile-detail-item-card-link"
                             >
                               {answer.questionId?.title || 'Question'}
                             </Link>
-                            <p className="text-slate-400 text-sm mt-2 line-clamp-2">{answer.body}</p>
-                            <div className="flex items-center gap-4 mt-3 text-sm text-slate-500">
+                            <p className="profile-detail-item-body">{answer.body}</p>
+                            <div className="profile-detail-item-meta">
                               <span>{answer.votes || 0} votes</span>
                               {answer.isAccepted && (
-                                <span className="text-green-400">✓ Accepted</span>
+                                <span className="profile-detail-item-accepted">✓ Accepted</span>
                               )}
                             </div>
                           </div>
@@ -710,14 +670,14 @@ export default function Profile() {
                   </div>
 
                   {/* Questions Section */}
-                  <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-bold text-white">Questions</h2>
-                      <div className="flex gap-2 text-sm">
+                  <div className="profile-detail-section">
+                    <div className="profile-detail-section-header">
+                      <h2 className="profile-detail-section-title">Questions</h2>
+                      <div className="profile-detail-section-filters">
                         {['Score', 'Activity', 'Newest', 'Views'].map((filter) => (
                           <button
                             key={filter}
-                            className="px-3 py-1 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+                            className="profile-detail-filter-button"
                           >
                             {filter}
                           </button>
@@ -725,19 +685,19 @@ export default function Profile() {
                       </div>
                     </div>
                     {questions.length === 0 ? (
-                      <p className="text-slate-400">No questions yet</p>
+                      <p className="profile-detail-empty-state">No questions yet</p>
                     ) : (
-                      <div className="space-y-3">
+                      <div className="profile-detail-items-list">
                         {questions.slice(0, 5).map((question: any) => (
                           <Link
                             key={question._id}
                             href={`/questions/${question._id}`}
-                            className="block p-4 bg-slate-700/50 rounded-lg border border-slate-600 hover:border-cyan-500/50 transition-colors"
+                            className="profile-detail-item-card-hover"
                           >
-                            <h3 className="text-cyan-400 hover:text-cyan-300 font-medium mb-2">
+                            <h3 className="profile-detail-item-title">
                               {question.title}
                             </h3>
-                            <div className="flex items-center gap-4 text-sm text-slate-500">
+                            <div className="profile-detail-item-meta">
                               <span>{question.votes || 0} votes</span>
                               <span>{question.answers || 0} answers</span>
                               <span>{question.views || 0} views</span>
@@ -751,25 +711,25 @@ export default function Profile() {
               )}
 
               {activeSubTab === 'answers' && (
-                <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-6">
-                  <h2 className="text-xl font-bold text-white mb-4">All Answers</h2>
+                <div className="profile-detail-section">
+                  <h2 className="profile-detail-section-title">All Answers</h2>
                   {answers.length === 0 ? (
-                    <p className="text-slate-400">No answers yet</p>
+                    <p className="profile-detail-empty-state">No answers yet</p>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="profile-detail-items-list">
                       {answers.map((answer: any) => (
-                        <div key={answer._id} className="p-4 bg-slate-700/50 rounded-lg border border-slate-600">
+                        <div key={answer._id} className="profile-detail-item-card">
                           <Link
                             href={`/questions/${answer.questionId._id}`}
-                            className="text-cyan-400 hover:text-cyan-300 font-medium"
+                            className="profile-detail-item-card-link"
                           >
                             {answer.questionId?.title || 'Question'}
                           </Link>
-                          <p className="text-slate-400 text-sm mt-2 line-clamp-3">{answer.body}</p>
-                          <div className="flex items-center gap-4 mt-3 text-sm text-slate-500">
+                          <p className="profile-detail-item-body profile-detail-item-body-clamp-3">{answer.body}</p>
+                          <div className="profile-detail-item-meta">
                             <span>{answer.votes || 0} votes</span>
                             {answer.isAccepted && (
-                              <span className="text-green-400">✓ Accepted</span>
+                              <span className="profile-detail-item-accepted">✓ Accepted</span>
                             )}
                           </div>
                         </div>
@@ -780,22 +740,22 @@ export default function Profile() {
               )}
 
               {activeSubTab === 'questions' && (
-                <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-6">
-                  <h2 className="text-xl font-bold text-white mb-4">All Questions</h2>
+                <div className="profile-detail-section">
+                  <h2 className="profile-detail-section-title">All Questions</h2>
                   {questions.length === 0 ? (
-                    <p className="text-slate-400">No questions yet</p>
+                    <p className="profile-detail-empty-state">No questions yet</p>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="profile-detail-items-list">
                       {questions.map((question: any) => (
                         <Link
                           key={question._id}
                           href={`/questions/${question._id}`}
-                          className="block p-4 bg-slate-700/50 rounded-lg border border-slate-600 hover:border-cyan-500/50 transition-colors"
+                          className="profile-detail-item-card-hover"
                         >
-                          <h3 className="text-cyan-400 hover:text-cyan-300 font-medium mb-2">
+                          <h3 className="profile-detail-item-title">
                             {question.title}
                           </h3>
-                          <div className="flex items-center gap-4 text-sm text-slate-500">
+                          <div className="profile-detail-item-meta">
                             <span>{question.votes || 0} votes</span>
                             <span>{question.answers || 0} answers</span>
                             <span>{question.views || 0} views</span>
@@ -808,9 +768,9 @@ export default function Profile() {
               )}
 
               {activeSubTab === 'tags' && (
-                <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-6">
-                  <h2 className="text-xl font-bold text-white mb-4">Tags</h2>
-                  <p className="text-slate-400">Tag activity will appear here</p>
+                <div className="profile-detail-section">
+                  <h2 className="profile-detail-section-title">Tags</h2>
+                  <p className="profile-detail-empty-state">Tag activity will appear here</p>
                 </div>
               )}
             </div>
@@ -818,23 +778,23 @@ export default function Profile() {
         )}
 
         {activeTab === 'activity' && (
-          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Activity</h2>
-            <p className="text-slate-400">Activity feed will appear here</p>
+          <div className="profile-detail-section">
+            <h2 className="profile-detail-section-title">Activity</h2>
+            <p className="profile-detail-empty-state">Activity feed will appear here</p>
           </div>
         )}
 
         {activeTab === 'saves' && (
-          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Saves</h2>
-            <p className="text-slate-400">Saved items will appear here</p>
+          <div className="profile-detail-section">
+            <h2 className="profile-detail-section-title">Saves</h2>
+            <p className="profile-detail-empty-state">Saved items will appear here</p>
           </div>
         )}
 
         {activeTab === 'settings' && (
-          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-2xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Settings</h2>
-            <p className="text-slate-400">Settings will appear here</p>
+          <div className="profile-detail-section">
+            <h2 className="profile-detail-section-title">Settings</h2>
+            <p className="profile-detail-empty-state">Settings will appear here</p>
           </div>
         )}
       </div>
