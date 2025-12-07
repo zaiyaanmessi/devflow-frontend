@@ -30,7 +30,6 @@ export default function AskQuestion() {
   const [bodyLength, setBodyLength] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const editorRef = useRef<HTMLDivElement>(null);
   const [accordionSections, setAccordionSections] = useState<AccordionSection[]>([
     {
       id: 'summarize',
@@ -95,8 +94,8 @@ export default function AskQuestion() {
     );
   };
 
-  // Rich text editor functions
-  const insertText = (before: string, after: string = '') => {
+  // Text editor functions for textarea
+  const insertTextAtCursor = (before: string, after: string = '') => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
@@ -106,6 +105,7 @@ export default function AskQuestion() {
     const newText = formData.body.substring(0, start) + before + selectedText + after + formData.body.substring(end);
     
     setFormData({ ...formData, body: newText });
+    setBodyLength(newText.length);
     
     // Restore cursor position
     setTimeout(() => {
@@ -115,7 +115,7 @@ export default function AskQuestion() {
     }, 0);
   };
 
-  const insertBlock = (markdown: string) => {
+  const insertBlockAtCursor = (markdown: string) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
@@ -135,6 +135,7 @@ export default function AskQuestion() {
     lines.splice(currentLine, 0, markdown);
     const newText = lines.join('\n');
     setFormData({ ...formData, body: newText });
+    setBodyLength(newText.length);
     
     setTimeout(() => {
       textarea.focus();
@@ -143,86 +144,44 @@ export default function AskQuestion() {
     }, 0);
   };
 
-  const insertList = (prefix: string, isNumbered: boolean = false) => {
-    const editor = editorRef.current;
-    if (!editor) return;
-
-    // Use setTimeout to ensure focus happens after button click
-    setTimeout(() => {
-      // Focus the editor first
-      editor.focus();
-      
-      // Ensure there's a selection - if not, create one at cursor position
-      const selection = window.getSelection();
-      if (!selection || selection.rangeCount === 0) {
-        // Create a range at the end of the editor
-        const range = document.createRange();
-        range.selectNodeContents(editor);
-        range.collapse(false); // Collapse to end
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-      }
-      
-      // Use document.execCommand for lists
-      try {
-        if (isNumbered) {
-          document.execCommand('insertOrderedList', false);
-        } else {
-          document.execCommand('insertUnorderedList', false);
-        }
-        
-        // Trigger change event to update state
-        editor.dispatchEvent(new Event('input', { bubbles: true }));
-      } catch (error) {
-        console.error('Error inserting list:', error);
-        // Fallback: insert markdown-style list
-        const currentSelection = window.getSelection();
-        if (currentSelection && currentSelection.rangeCount > 0) {
-          const range = currentSelection.getRangeAt(0);
-          const listItem = isNumbered ? '1. ' : '* ';
-          const textNode = document.createTextNode(listItem);
-          range.insertNode(textNode);
-          range.setStartAfter(textNode);
-          range.collapse(true);
-          currentSelection.removeAllRanges();
-          currentSelection.addRange(range);
-          editor.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      }
-    }, 10);
-  };
-
   const handleFormat = (type: string) => {
-    const editor = editorRef.current;
-    if (!editor) return;
+    const textarea = textareaRef.current;
+    if (!textarea) return;
 
-    // Focus the editor
-    editor.focus();
+    // Focus the textarea
+    textarea.focus();
     
-    // Use document.execCommand for visual formatting
     switch (type) {
       case 'bold':
-        document.execCommand('bold', false);
+        insertTextAtCursor('**', '**');
         break;
       case 'italic':
-        document.execCommand('italic', false);
+        insertTextAtCursor('*', '*');
         break;
       case 'strikethrough':
-        document.execCommand('strikeThrough', false);
+        insertTextAtCursor('~~', '~~');
         break;
       case 'code':
-        insertText('`', '`');
+        insertTextAtCursor('`', '`');
         break;
       case 'codeblock':
-        insertText('```\n', '\n```');
+        // Insert code block markdown
+        const codeBlock = '```\n// Your code here\n```';
+        insertTextAtCursor(codeBlock + '\n\n', '');
+        // Select the placeholder text
+        setTimeout(() => {
+          const start = textarea.selectionStart - codeBlock.length - 2;
+          const end = start + '// Your code here'.length;
+          textarea.setSelectionRange(start, end);
+        }, 10);
         break;
       case 'link':
         const url = prompt('Enter URL:');
         if (url) {
-          const text = textareaRef.current?.selectionStart !== textareaRef.current?.selectionEnd
-            ? formData.body.substring(textareaRef.current!.selectionStart, textareaRef.current!.selectionEnd)
-            : 'link text';
-          insertText(`[${text}](${url})`, '');
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          const selectedText = formData.body.substring(start, end) || 'link text';
+          insertTextAtCursor(`[${selectedText}](${url})`, '');
         }
         break;
       case 'image':
@@ -232,19 +191,19 @@ export default function AskQuestion() {
         setImageError('');
         break;
       case 'blockquote':
-        insertBlock('> ');
+        insertBlockAtCursor('> ');
         break;
       case 'heading':
-        insertText('# ', '');
+        insertTextAtCursor('# ', '');
         break;
       case 'list':
-        insertList('* ');
+        insertBlockAtCursor('- ');
         break;
       case 'numbered-list':
-        insertList('1. ', true);
+        insertBlockAtCursor('1. ');
         break;
       case 'hr':
-        insertBlock('---');
+        insertBlockAtCursor('---\n');
         break;
       default:
         break;
@@ -259,7 +218,85 @@ export default function AskQuestion() {
     }
   };
 
-  const validateAndSetImage = (file: File) => {
+  // Compress and resize image
+  const compressImage = (file: File, maxWidth: number = 1200, maxHeight: number = 1200, quality: number = 0.7): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          // Calculate new dimensions
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > maxWidth || height > maxHeight) {
+            if (width > height) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            } else {
+              width = (width * maxHeight) / height;
+              height = maxHeight;
+            }
+          }
+          
+          // Create canvas and compress
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          
+          if (!ctx) {
+            reject(new Error('Could not get canvas context'));
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Convert to blob with compression
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error('Image compression failed'));
+                return;
+              }
+              
+              // Check if compressed size is acceptable (max 500KB)
+              if (blob.size > 500 * 1024) {
+                // Try again with lower quality
+                canvas.toBlob(
+                  (smallerBlob) => {
+                    if (!smallerBlob) {
+                      reject(new Error('Image compression failed'));
+                      return;
+                    }
+                    const reader2 = new FileReader();
+                    reader2.onloadend = () => resolve(reader2.result as string);
+                    reader2.onerror = () => reject(new Error('Failed to read compressed image'));
+                    reader2.readAsDataURL(smallerBlob);
+                  },
+                  file.type,
+                  0.5 // Lower quality
+                );
+              } else {
+                const reader2 = new FileReader();
+                reader2.onloadend = () => resolve(reader2.result as string);
+                reader2.onerror = () => reject(new Error('Failed to read compressed image'));
+                reader2.readAsDataURL(blob);
+              }
+            },
+            file.type,
+            quality
+          );
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const validateAndSetImage = async (file: File) => {
     setImageError('');
     
     // Check file type
@@ -269,7 +306,7 @@ export default function AskQuestion() {
       return;
     }
 
-    // Check file size (2 MiB = 2 * 1024 * 1024 bytes)
+    // Check original file size (2 MiB = 2 * 1024 * 1024 bytes)
     const maxSize = 2 * 1024 * 1024;
     if (file.size > maxSize) {
       setImageError('Image size must be less than 2 MiB.');
@@ -278,12 +315,16 @@ export default function AskQuestion() {
 
     setImageFile(file);
     
-    // Create preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      // Compress and create preview
+      const compressedDataUrl = await compressImage(file);
+      setImagePreview(compressedDataUrl);
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      setImageError('Failed to process image. Please try another image.');
+      setImageFile(null);
+      setImagePreview(null);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -291,13 +332,13 @@ export default function AskQuestion() {
     e.stopPropagation();
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith('image/')) {
-      validateAndSetImage(file);
+      await validateAndSetImage(file);
     } else {
       setImageError('Please drop an image file.');
     }
@@ -309,7 +350,7 @@ export default function AskQuestion() {
       if (items[i].type.startsWith('image/')) {
         const file = items[i].getAsFile();
         if (file) {
-          validateAndSetImage(file);
+          await validateAndSetImage(file);
           e.preventDefault();
           break;
         }
@@ -323,6 +364,12 @@ export default function AskQuestion() {
       return;
     }
 
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setImageError('Editor not found.');
+      return;
+    }
+
     // Generate a unique ID for this image
     const imageId = `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
@@ -332,8 +379,10 @@ export default function AskQuestion() {
       [imageId]: imagePreview
     }));
     
-    // Insert just the link text with the ID - no long base64 in textarea
-    insertText(`[your image](IMAGE:${imageId})`, '');
+    // Insert image markdown at cursor position (format: [your image](IMAGE:id))
+    // The IMAGE:id will be replaced with base64 data URI on submit
+    const imageMarkdown = `[your image](IMAGE:${imageId})\n\n`;
+    insertTextAtCursor(imageMarkdown, '');
     
     // Close modal and reset
     setShowImageModal(false);
@@ -356,25 +405,16 @@ export default function AskQuestion() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = e.target.value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     });
-  };
-
-  const handleEditorChange = () => {
-    const editor = editorRef.current;
-    if (!editor) return;
     
-    // Get plain text content for validation
-    const text = editor.innerText || editor.textContent || '';
-    setFormData(prev => ({ ...prev, body: text }));
-    setBodyLength(text.length);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    // Let Enter key work normally - list continuation will be handled by the browser
-    // We'll convert HTML to markdown on submit
+    // Update body length if it's the body field
+    if (e.target.name === 'body') {
+      setBodyLength(value.length);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -390,59 +430,8 @@ export default function AskQuestion() {
         return;
       }
 
-      const editor = editorRef.current;
-      if (!editor) {
-        setError('Editor not found');
-        setLoading(false);
-        return;
-      }
-
-      // Convert HTML content to markdown
-      const htmlToMarkdown = (html: string): string => {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        
-        const processNode = (node: Node): string => {
-          if (node.nodeType === Node.TEXT_NODE) {
-            return node.textContent || '';
-          }
-          
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            const el = node as HTMLElement;
-            const tagName = el.tagName.toLowerCase();
-            const children = Array.from(node.childNodes).map(processNode).join('');
-            
-            if (tagName === 'strong' || tagName === 'b') {
-              return `**${children}**`;
-            } else if (tagName === 'em' || tagName === 'i') {
-              return `*${children}*`;
-            } else if (tagName === 's' || tagName === 'strike' || tagName === 'del') {
-              return `~~${children}~~`;
-            } else if (tagName === 'code') {
-              return `\`${children}\``;
-            } else if (tagName === 'h1') {
-              return `# ${children}\n`;
-            } else if (tagName === 'h2') {
-              return `## ${children}\n`;
-            } else if (tagName === 'h3') {
-              return `### ${children}\n`;
-            } else if (tagName === 'p') {
-              return children + '\n';
-            } else if (tagName === 'br') {
-              return '\n';
-            } else if (tagName === 'div') {
-              return children;
-            }
-            return children;
-          }
-          
-          return '';
-        };
-        
-        return Array.from(tempDiv.childNodes).map(processNode).join('').trim();
-      };
-
-      const markdownBody = htmlToMarkdown(editor.innerHTML);
+      // Body is already in markdown format from textarea
+      const markdownBody = formData.body.trim();
       
       if (markdownBody.length < 50) {
         setError('Details must be at least 50 characters');
@@ -802,15 +791,15 @@ export default function AskQuestion() {
                     </svg>
                   </button>
                 </div>
-                <div
-                  ref={editorRef}
-                  contentEditable
-                  onInput={handleEditorChange}
-                  onKeyDown={handleKeyDown}
-                  suppressContentEditableWarning
-                  className="w-full min-h-[500px] sm:min-h-[600px] px-6 py-4 bg-slate-800 border-2 border-slate-600 border-t-0 rounded-b-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 resize-y text-lg sm:text-xl"
+                <textarea
+                  ref={textareaRef}
+                  name="body"
+                  value={formData.body}
+                  onChange={handleChange}
+                  placeholder="Include all the information someone would need to answer your question..."
+                  className="w-full min-h-[500px] sm:min-h-[600px] px-6 py-4 bg-slate-800 border-2 border-slate-600 border-t-0 rounded-b-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 resize-y text-lg sm:text-xl font-mono"
                   style={{ whiteSpace: 'pre-wrap' }}
-                  data-placeholder="Include all the information someone would need to answer your question..."
+                  required
                 />
               </div>
 
