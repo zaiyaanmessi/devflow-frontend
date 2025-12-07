@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import api from '@/services/api';
@@ -13,6 +13,16 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Clear form data on mount to prevent browser autofill
+  useEffect(() => {
+    setFormData({
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    });
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -126,6 +136,7 @@ export default function Register() {
                 onChange={handleChange}
                 placeholder="Choose a username"
                 className="register-input"
+                autoComplete="off"
                 required
               />
             </div>
@@ -142,6 +153,7 @@ export default function Register() {
                 onChange={handleChange}
                 placeholder="Enter your email"
                 className="register-input"
+                autoComplete="off"
                 required
               />
             </div>
@@ -158,6 +170,7 @@ export default function Register() {
                 onChange={handleChange}
                 placeholder="Create a password"
                 className="register-input"
+                autoComplete="new-password"
                 required
               />
             </div>
@@ -174,6 +187,7 @@ export default function Register() {
                 onChange={handleChange}
                 placeholder="Confirm your password"
                 className="register-input"
+                autoComplete="new-password"
                 required
               />
             </div>

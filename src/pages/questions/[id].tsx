@@ -207,56 +207,107 @@ export default function QuestionDetail() {
   };
 
   const handleVoteQuestion = async (value: 1 | -1) => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      setError('You must be logged in to vote');
+      return;
+    }
     if (!question) return;
+    
     try {
-      const response = await api.post('/votes', {
-        targetType: 'question',
-        targetId: question._id,
-        value,
+      const endpoint = value === 1 ? 'upvote' : 'downvote';
+      const response = await api.post(`/questions/${question._id}/${endpoint}`);
+      
+      setQuestion({ 
+        ...question, 
+        votes: response.data.question.votes,
+        asker: response.data.question.asker
       });
-      setQuestionVote(questionVote === value ? 0 : value);
-      setQuestion({ ...question, votes: response.data.votes });
+      
+      setQuestionVote(value);
+      
+      console.log(`✅ Question ${endpoint}d successfully. New votes: ${response.data.question.votes}`);
     } catch (err: any) {
       console.error('Error voting on question:', err);
-      setError(err.response?.data?.error || 'Failed to vote');
+      const errorMsg = err.response?.data?.error || 'Failed to vote';
+      setError(errorMsg);
     }
   };
 
   const handleVoteAnswer = async (answerId: string, value: 1 | -1) => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      setError('You must be logged in to vote');
+      return;
+    }
+    
     try {
-      const response = await api.post('/votes', {
-        targetType: 'answer',
-        targetId: answerId,
-        value,
-      });
+      const endpoint = value === 1 ? 'upvote' : 'downvote';
+      const response = await api.post(`/questions/${id}/answers/${answerId}/${endpoint}`);
+      
       setAnswerVotes({
         ...answerVotes,
-        [answerId]: answerVotes[answerId] === value ? 0 : value
+        [answerId]: value
       });
+      
       setAnswers(
         answers.map((ans) =>
-          ans._id === answerId ? { ...ans, votes: response.data.votes } : ans
+          ans._id === answerId 
+            ? { 
+                ...ans, 
+                votes: response.data.answer.votes,
+                answerer: response.data.answer.answerer
+              } 
+            : ans
         )
       );
+      
+      console.log(`✅ Answer ${endpoint}d successfully. New votes: ${response.data.answer.votes}`);
     } catch (err: any) {
       console.error('Error voting on answer:', err);
-      setError(err.response?.data?.error || 'Failed to vote');
+      const errorMsg = err.response?.data?.error || 'Failed to vote';
+      setError(errorMsg);
     }
   };
 
   const handleAcceptAnswer = async (answerId: string) => {
     try {
-      await api.put(`/questions/${id}/answers/${answerId}/accept`, {});
+      const response = await api.put(`/questions/${id}/answers/${answerId}/accept`, {});
+      
+      const updatedAnswer = response.data.answer;
+      
+      console.log('✅ Answer accepted successfully');
+      console.log('✅ Answerer:', updatedAnswer?.answerer?.username);
+      
       setAnswers(
         answers.map((ans) =>
           ans._id === answerId
-            ? { ...ans, isAccepted: true }
+            ? { 
+                ...ans, 
+                isAccepted: true, 
+                answerer: updatedAnswer.answerer
+              }
             : { ...ans, isAccepted: false }
         )
       );
-      setQuestion({ ...question, acceptedAnswer: answerId });
+      
+      setQuestion({ 
+        ...question, 
+        acceptedAnswer: answerId 
+      });
+      
+      // Update navbar reputation
+      if (typeof window !== 'undefined' && currentUserId && updatedAnswer.answerer._id.toString() === currentUserId.toString()) {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          try {
+            const userObj = JSON.parse(userData);
+            userObj.reputation = updatedAnswer.answerer.reputation;
+            localStorage.setItem('user', JSON.stringify(userObj));
+            setUser(userObj);
+          } catch (e) {
+            console.error('Error updating user in localStorage:', e);
+          }
+        }
+      }
     } catch (err: any) {
       console.error('Error accepting answer:', err);
       setError(err.response?.data?.error || 'Failed to accept answer');
@@ -307,6 +358,11 @@ export default function QuestionDetail() {
 
   const handleDeleteQuestion = async () => {
     if (!confirm('Are you sure you want to delete this question?')) return;
+    
+    if (!isQuestionAsker && currentUserRole !== 'admin') {
+      setError('You can only delete your own questions');
+      return;
+    }
     
     try {
       setError('');
@@ -385,12 +441,77 @@ export default function QuestionDetail() {
     }
   };
 
+  // ============ EXPERT FEATURES ============
+
+  const handlePinQuestion = async () => {
+    try {
+      await api.post(`/questions/${id}/pin`);
+      console.log('✅ Question pinned successfully');
+      await fetchQuestion();
+      setError('');
+    } catch (err: any) {
+      console.error('Error pinning question:', err);
+      setError(err.response?.data?.error || 'Failed to pin question');
+    }
+  };
+
+  const handleUnpinQuestion = async () => {
+    try {
+      await api.post(`/questions/${id}/unpin`);
+      console.log('✅ Question unpinned successfully');
+      await fetchQuestion();
+      setError('');
+    } catch (err: any) {
+      console.error('Error unpinning question:', err);
+      setError(err.response?.data?.error || 'Failed to unpin question');
+    }
+  };
+
   const handleVerifyAnswer = async (answerId: string) => {
     try {
-      setError('Verify answer feature not yet implemented');
+      const response = await api.post(`/questions/${id}/answers/${answerId}/verify`);
+      console.log('✅ Answer verified successfully');
+      
+      setAnswers(
+        answers.map((ans) =>
+          ans._id === answerId
+            ? { 
+                ...ans, 
+                isVerified: true,
+                verifiedBy: response.data.answer.verifiedBy
+              }
+            : ans
+        )
+      );
+      
+      setError('');
     } catch (err: any) {
       console.error('Error verifying answer:', err);
       setError(err.response?.data?.error || 'Failed to verify answer');
+    }
+  };
+
+  const handleUnverifyAnswer = async (answerId: string) => {
+    try {
+      await api.post(`/questions/${id}/answers/${answerId}/unverify`);
+      console.log('✅ Answer unverified successfully');
+      
+      setAnswers(
+        answers.map((ans) =>
+          ans._id === answerId
+            ? { 
+                ...ans, 
+                isVerified: false,
+                verifiedBy: null
+              }
+            : ans
+        )
+      );
+      
+      setError('');
+    } catch (err: any) {
+      console.error('Error unverifying answer:', err);
+      setError(err.response?.data?.error || 'Failed to unverify answer');
     }
   };
 
@@ -424,6 +545,7 @@ export default function QuestionDetail() {
     answerComments,
     isQuestionAsker,
     currentUserId,
+    currentUserRole,
     questionVote,
     answerVotes,
     onVoteQuestion: handleVoteQuestion,
@@ -445,6 +567,11 @@ export default function QuestionDetail() {
     setEditingAnswerText,
     onSaveAnswer: handleSaveAnswer,
     isSavingAnswer,
+    // ⭐ EXPERT FEATURES
+    onVerifyAnswer: handleVerifyAnswer,
+    onUnverifyAnswer: handleUnverifyAnswer,
+    onPinQuestion: handlePinQuestion,
+    onUnpinQuestion: handleUnpinQuestion,
   };
 
   const showSidebar = user ? true : false;
@@ -508,8 +635,8 @@ export default function QuestionDetail() {
             </div>
           ) : (
             <div className="question-detail-view-container">
-              {currentUserRole === 'admin' && <AdminView {...commonProps} currentUserId={currentUserId} onDeleteAnyAnswer={handleDeleteAnyAnswer} />}
-              {currentUserRole === 'expert' && <ExpertView {...commonProps} currentUserId={currentUserId} onVerifyAnswer={handleVerifyAnswer} />}
+              {currentUserRole === 'admin' && <AdminView {...commonProps} currentUserId={currentUserId} onDeleteAnyAnswer={handleDeleteAnyAnswer} onVerifyAnswer={handleVerifyAnswer} onUnverifyAnswer={handleUnverifyAnswer} onPinQuestion={handlePinQuestion} onUnpinQuestion={handleUnpinQuestion} />}
+              {currentUserRole === 'expert' && <ExpertView {...commonProps} currentUserId={currentUserId} />}
               {(!currentUserRole || currentUserRole === 'user') && <StudentView {...commonProps} currentUserId={currentUserId} />}
             </div>
           )}

@@ -10,6 +10,7 @@ interface AdminViewProps {
   answerComments: any;
   isQuestionAsker: boolean;
   currentUserId: string | null;
+  currentUserRole: string | null;
   questionVote: 1 | -1 | 0;
   answerVotes: { [key: string]: 1 | -1 | 0 };
   
@@ -25,6 +26,10 @@ interface AdminViewProps {
   onAddAnswerComment: (answerId: string, e: React.FormEvent) => void;
   onDeleteComment: (commentId: string, targetType: 'question' | 'answer') => void;
   onDeleteAnyAnswer: (answerId: string) => void;
+  onVerifyAnswer: (answerId: string) => void;
+  onUnverifyAnswer: (answerId: string) => void;
+  onPinQuestion: () => void;
+  onUnpinQuestion: () => void;
   
   // State
   commentText: string;
@@ -58,6 +63,10 @@ export default function AdminView({
   onAddAnswerComment,
   onDeleteComment,
   onDeleteAnyAnswer,
+  onVerifyAnswer,
+  onUnverifyAnswer,
+  onPinQuestion,
+  onUnpinQuestion,
   commentText,
   setCommentText,
   answerCommentText,
@@ -111,6 +120,11 @@ export default function AdminView({
             {/* Question Title */}
             <h1 className="question-title-large">
               {question.title}
+              {question.isPinned && (
+                <span className="pinned-badge" title="This question is pinned">
+                  📌 Pinned
+                </span>
+              )}
             </h1>
 
             {/* Question Meta */}
@@ -139,6 +153,24 @@ export default function AdminView({
               >
                 Delete
               </button>
+              <span>•</span>
+              {question.isPinned ? (
+                <button
+                  onClick={onUnpinQuestion}
+                  className="question-meta-action question-meta-action-unpin"
+                  title="Unpin this question"
+                >
+                  📌 Unpin
+                </button>
+              ) : (
+                <button
+                  onClick={onPinQuestion}
+                  className="question-meta-action question-meta-action-pin"
+                  title="Pin this question to highlight it"
+                >
+                  📌 Pin
+                </button>
+              )}
             </div>
 
             {/* Question Body */}
@@ -336,6 +368,31 @@ export default function AdminView({
                               className="answer-meta-action answer-meta-action-accept"
                             >
                               Accept
+                            </button>
+                          </>
+                        )}
+                        {/* Admin can verify any answer */}
+                        {!answer.isVerified && (
+                          <>
+                            <span>•</span>
+                            <button
+                              onClick={() => onVerifyAnswer(answer._id)}
+                              className="answer-meta-action answer-meta-action-verify"
+                              title="Mark this answer as verified"
+                            >
+                              ✓ Verify
+                            </button>
+                          </>
+                        )}
+                        {answer.isVerified && (
+                          <>
+                            <span>•</span>
+                            <button
+                              onClick={() => onUnverifyAnswer(answer._id)}
+                              className="answer-meta-action answer-meta-action-verified"
+                              title="Remove verification from this answer"
+                            >
+                              ✓ Verified
                             </button>
                           </>
                         )}

@@ -16,6 +16,7 @@ export default function Profile() {
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [questions, setQuestions] = useState<any[]>([]);
   const [answers, setAnswers] = useState<any[]>([]);
+  const [tags, setTags] = useState<{ name: string; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isOwnProfile, setIsOwnProfile] = useState(false);
@@ -85,10 +86,27 @@ export default function Profile() {
       }
 
       const questionsRes = await api.get(`/users/${id}/questions`);
-      setQuestions(questionsRes.data.questions || []);
+      const userQuestions = questionsRes.data.questions || [];
+      setQuestions(userQuestions);
 
       const answersRes = await api.get(`/users/${id}/answers`);
       setAnswers(answersRes.data.answers || []);
+
+      // Extract and count tags from user's questions
+      const tagMap: { [key: string]: number } = {};
+      userQuestions.forEach((q: any) => {
+        if (q.tags && Array.isArray(q.tags)) {
+          q.tags.forEach((tag: string) => {
+            tagMap[tag] = (tagMap[tag] || 0) + 1;
+          });
+        }
+      });
+      
+      const tagsArray = Object.entries(tagMap)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count); // Sort by count descending
+      
+      setTags(tagsArray);
 
       setError('');
     } catch (err: any) {
@@ -488,9 +506,18 @@ export default function Profile() {
                 </span>
               </div>
               <div className="profile-detail-user-meta">
-                <p>Member since {memberSince}</p>
-                <p>Last seen {memberSince}</p>
-                <p>Visited 1 day, 1 consecutive</p>
+                {user.title && (
+                  <p className="profile-detail-user-designation">{user.title}</p>
+                )}
+                {user.location && (
+                  <p className="profile-detail-user-location">📍 {user.location}</p>
+                )}
+                {user.bio && (
+                  <p className="profile-detail-user-bio">{user.bio}</p>
+                )}
+                {!user.title && !user.location && !user.bio && (
+                  <p className="profile-detail-user-meta-text">Member since {memberSince}</p>
+                )}
               </div>
             </div>
 
@@ -503,21 +530,6 @@ export default function Profile() {
                 >
                   Edit profile
                 </button>
-              )}
-              {isOwnProfile && (
-                <div className="profile-detail-role-select-wrapper">
-                  <label className="profile-detail-role-select-label">Change My Role:</label>
-                  <select
-                    value={selectedRole}
-                    onChange={(e) => handleChangeRole(e.target.value)}
-                    disabled={isChangingRole}
-                    className="profile-detail-role-select"
-                  >
-                    <option value="user">👨‍🎓 Student</option>
-                    <option value="expert">👨‍🏫 Expert</option>
-                    <option value="admin">👨‍💼 Admin</option>
-                  </select>
-                </div>
               )}
             </div>
           </div>
@@ -582,20 +594,6 @@ export default function Profile() {
                 <div className="profile-detail-section">
                   {/* Info Cards */}
                   <div className="profile-detail-info-cards">
-                    <div className="profile-detail-info-card">
-                      <div className="profile-detail-info-card-header">
-                        <div className="profile-detail-info-card-icon">
-                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                          </svg>
-                        </div>
-                        <h3 className="profile-detail-info-card-title">Reputation</h3>
-                      </div>
-                      <p className="profile-detail-info-card-description">
-                        Reputation is how the community thanks you. Upvotes earn reputation and unlock privileges.
-                      </p>
-                      <a href="#" className="profile-detail-info-card-link">Learn more about reputation</a>
-                    </div>
 
                     <div className="profile-detail-info-card">
                       <div className="profile-detail-info-card-header">
@@ -769,8 +767,39 @@ export default function Profile() {
 
               {activeSubTab === 'tags' && (
                 <div className="profile-detail-section">
-                  <h2 className="profile-detail-section-title">Tags</h2>
-                  <p className="profile-detail-empty-state">Tag activity will appear here</p>
+                  <div className="profile-detail-section-header">
+                    <h2 className="profile-detail-section-title">Tags</h2>
+                    <div className="profile-detail-section-filters">
+                      {['Score', 'Activity', 'Newest', 'Views'].map((filter) => (
+                        <button
+                          key={filter}
+                          className="profile-detail-filter-button"
+                        >
+                          {filter}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {tags.length === 0 ? (
+                    <p className="profile-detail-empty-state">No tags yet. Tags will appear here when you ask questions with tags.</p>
+                  ) : (
+                    <div className="profile-detail-items-list">
+                      {tags.map((tag) => (
+                        <Link
+                          key={tag.name}
+                          href={`/questions?tag=${encodeURIComponent(tag.name)}`}
+                          className="profile-detail-item-card-hover"
+                        >
+                          <h3 className="profile-detail-item-title">
+                            {tag.name}
+                          </h3>
+                          <div className="profile-detail-item-meta">
+                            <span>{tag.count} {tag.count === 1 ? 'question' : 'questions'}</span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -778,23 +807,158 @@ export default function Profile() {
         )}
 
         {activeTab === 'activity' && (
-          <div className="profile-detail-section">
-            <h2 className="profile-detail-section-title">Activity</h2>
-            <p className="profile-detail-empty-state">Activity feed will appear here</p>
+          <div className="profile-detail-content-grid">
+            <div className="profile-detail-content-main">
+              <div className="profile-detail-section">
+                <div className="profile-detail-section-header">
+                  <h2 className="profile-detail-section-title">Activity</h2>
+                  <div className="profile-detail-section-filters">
+                    {['All', 'Questions', 'Answers', 'Comments'].map((filter) => (
+                      <button
+                        key={filter}
+                        className="profile-detail-filter-button"
+                      >
+                        {filter}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Combined Activity Feed */}
+                <div className="profile-detail-items-list">
+                  {/* Questions Activity */}
+                  {questions.length > 0 && questions.map((question: any) => (
+                    <div key={`q-${question._id}`} className="profile-detail-item-card">
+                      <div className="profile-detail-activity-header">
+                        <span className="profile-detail-activity-type">📝 Asked a question</span>
+                        <span className="profile-detail-activity-date">{formatDate(question.createdAt)}</span>
+                      </div>
+                      <Link
+                        href={`/questions/${question._id}`}
+                        className="profile-detail-item-card-link"
+                      >
+                        {question.title}
+                      </Link>
+                      <div className="profile-detail-item-meta">
+                        <span>{question.votes || 0} votes</span>
+                        <span>{question.answers || 0} answers</span>
+                        <span>{question.views || 0} views</span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Answers Activity */}
+                  {answers.length > 0 && answers.map((answer: any) => (
+                    <div key={`a-${answer._id}`} className="profile-detail-item-card">
+                      <div className="profile-detail-activity-header">
+                        <span className="profile-detail-activity-type">💬 Answered</span>
+                        <span className="profile-detail-activity-date">{formatDate(answer.createdAt)}</span>
+                      </div>
+                      <Link
+                        href={`/questions/${answer.questionId._id}`}
+                        className="profile-detail-item-card-link"
+                      >
+                        {answer.questionId?.title || 'Question'}
+                      </Link>
+                      <p className="profile-detail-item-body profile-detail-item-body-clamp-2">{answer.body}</p>
+                      <div className="profile-detail-item-meta">
+                        <span>{answer.votes || 0} votes</span>
+                        {answer.isAccepted && (
+                          <span className="profile-detail-item-accepted">✓ Accepted</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {questions.length === 0 && answers.length === 0 && (
+                    <p className="profile-detail-empty-state">No activity yet</p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
         {activeTab === 'saves' && (
-          <div className="profile-detail-section">
-            <h2 className="profile-detail-section-title">Saves</h2>
-            <p className="profile-detail-empty-state">Saved items will appear here</p>
+          <div className="profile-detail-content-grid">
+            <div className="profile-detail-content-main">
+              <div className="profile-detail-section">
+                <div className="profile-detail-section-header">
+                  <h2 className="profile-detail-section-title">Saved Questions</h2>
+                  <div className="profile-detail-section-filters">
+                    {['All', 'Recent', 'Oldest'].map((filter) => (
+                      <button
+                        key={filter}
+                        className="profile-detail-filter-button"
+                      >
+                        {filter}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <p className="profile-detail-empty-state">
+                  Saved questions will appear here. Use the bookmark feature on questions to save them for later.
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
-        {activeTab === 'settings' && (
+        {activeTab === 'settings' && isOwnProfile && (
+          <div className="profile-detail-content-grid">
+            <div className="profile-detail-content-main">
+              <div className="profile-detail-section">
+                <div className="profile-detail-section-header">
+                  <h2 className="profile-detail-section-title">Settings</h2>
+                </div>
+                
+                {/* Change Role */}
+                <div className="profile-detail-item-card">
+                  <h3 className="profile-detail-item-title">Change My Role</h3>
+                  <p className="profile-detail-item-body" style={{ marginBottom: '1rem', color: 'rgb(148, 163, 184)' }}>
+                    Change your role between Student, Expert, or Admin
+                  </p>
+                  <div className="profile-detail-role-select-wrapper" style={{ marginTop: '1rem' }}>
+                    <label className="profile-detail-role-select-label" style={{ display: 'block', marginBottom: '0.5rem', color: 'rgb(203, 213, 225)' }}>
+                      Select Role:
+                    </label>
+                    <select
+                      value={selectedRole}
+                      onChange={(e) => handleChangeRole(e.target.value)}
+                      disabled={isChangingRole}
+                      className="profile-detail-role-select"
+                      style={{ 
+                        width: '100%', 
+                        maxWidth: '300px',
+                        padding: '0.5rem',
+                        backgroundColor: 'rgb(30, 41, 59)',
+                        border: '2px solid rgb(51, 65, 85)',
+                        borderRadius: '0.5rem',
+                        color: 'white',
+                        fontSize: '1rem'
+                      }}
+                    >
+                      <option value="user">👨‍🎓 Student</option>
+                      <option value="expert">👨‍🏫 Expert</option>
+                      <option value="admin">👨‍💼 Admin</option>
+                    </select>
+                    {isChangingRole && (
+                      <p style={{ marginTop: '0.5rem', color: 'rgb(148, 163, 184)' }}>Changing...</p>
+                    )}
+                    {roleChangeSuccess && (
+                      <p style={{ marginTop: '0.5rem', color: 'rgb(34, 197, 94)' }}>{roleChangeSuccess}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'settings' && !isOwnProfile && (
           <div className="profile-detail-section">
             <h2 className="profile-detail-section-title">Settings</h2>
-            <p className="profile-detail-empty-state">Settings will appear here</p>
+            <p className="profile-detail-empty-state">You can only view your own settings</p>
           </div>
         )}
       </div>

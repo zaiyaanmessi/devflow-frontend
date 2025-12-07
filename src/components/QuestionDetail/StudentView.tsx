@@ -10,6 +10,7 @@ interface StudentViewProps {
   answerComments: any;
   isQuestionAsker: boolean;
   currentUserId: string | null;
+  currentUserRole: string | null;
   questionVote: 1 | -1 | 0;
   answerVotes: { [key: string]: 1 | -1 | 0 };
   
@@ -174,6 +175,15 @@ export default function StudentView({
                       </Link>
                       <span>•</span>
                       <span className="comment-body-text">{comment.body}</span>
+                      {/* Students can only delete their own comments */}
+                      {currentUserId === comment.author._id && (
+                        <button
+                          onClick={() => onDeleteComment(comment._id, 'question')}
+                          className="comment-delete-button"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -224,7 +234,7 @@ export default function StudentView({
             {answers.map((answer: any) => (
               <div
                 key={answer._id}
-                className={`answer-card ${answer.isAccepted ? 'accepted' : ''}`}
+                className={`answer-card ${answer.isAccepted ? 'accepted' : ''} ${answer.isVerified ? 'verified' : ''}`}
               >
                 {/* Left: Vote Column */}
                 <div className="vote-column">
@@ -271,6 +281,17 @@ export default function StudentView({
                       </div>
                     </div>
                   )}
+
+                  {/* Verified Answer Badge ⭐ NEW */}
+                  {answer.isVerified && (
+                    <div className="verified-badge-large">
+                      <div>
+                        <span className="verified-badge-text">✓ Verified Answer</span>
+                        <p className="verified-badge-description">This answer has been verified by an expert</p>
+                      </div>
+                    </div>
+                  )}
+
                   {editingAnswerId === answer._id ? (
                     <form
                       onSubmit={(e) => {
@@ -315,6 +336,14 @@ export default function StudentView({
                         >
                           {answer.answerer.username}
                         </Link>
+                        {answer.answerer.role === 'expert' && (
+                          <>
+                            <span>•</span>
+                            <span className="expert-badge-inline">
+                              👨‍🏫 Expert
+                            </span>
+                          </>
+                        )}
                         {isQuestionAsker && !answer.isAccepted && (
                           <>
                             <span>•</span>
@@ -377,6 +406,15 @@ export default function StudentView({
                                 </Link>
                                 <span>•</span>
                                 <span className="comment-body-text">{comment.body}</span>
+                                {/* Students can only delete their own comments */}
+                                {currentUserId === comment.author._id && (
+                                  <button
+                                    onClick={() => onDeleteComment(comment._id, 'answer')}
+                                    className="comment-delete-button"
+                                  >
+                                    Delete
+                                  </button>
+                                )}
                               </div>
                             </div>
                           ))}

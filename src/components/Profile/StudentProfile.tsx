@@ -57,8 +57,6 @@ export default function StudentProfile({
             {/* Stats Grid */}
             <div className="grid grid-cols-3 gap-4 sm:gap-6">
               <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
-                <span className="font-bold text-cyan-400 text-lg">⭐ {user.reputation}</span>
-                <p className="text-sm text-slate-400 mt-1">Reputation</p>
               </div>
               <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
                 <span className="font-bold text-white text-lg">{questions.length || 0}</span>

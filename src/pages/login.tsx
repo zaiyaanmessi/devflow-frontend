@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import api from '@/services/api';
@@ -11,6 +11,14 @@ export default function Login() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Clear form data on mount to prevent browser autofill
+  useEffect(() => {
+    setFormData({
+      email: '',
+      password: '',
+    });
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -117,6 +125,7 @@ export default function Login() {
                 onChange={handleChange}
                 placeholder="Enter your email"
                 className="login-input"
+                autoComplete="off"
                 required
               />
             </div>
@@ -133,6 +142,7 @@ export default function Login() {
                 onChange={handleChange}
                 placeholder="Enter your password"
                 className="login-input"
+                autoComplete="new-password"
                 required
               />
             </div>

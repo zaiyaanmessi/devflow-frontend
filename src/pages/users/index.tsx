@@ -10,7 +10,7 @@ interface User {
   _id: string;
   username: string;
   email: string;
-  reputation: number;
+  reputation?: number;
   role: string;
   createdAt: string;
   questionsCount?: number;
@@ -23,7 +23,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'reputation' | 'newest' | 'name'>('reputation');
+  const [sortBy, setSortBy] = useState<'newest' | 'name'>('newest');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const USERS_PER_PAGE = 20;
@@ -72,7 +72,6 @@ export default function UsersPage() {
                   _id: userId,
                   username: answer.answerer.username,
                   email: answer.answerer.email || '',
-                  reputation: answer.answerer.reputation || 0,
                   role: answer.answerer.role || 'user',
                   createdAt: answer.answerer.createdAt || answer.createdAt,
                   questionsCount: 0,
@@ -87,9 +86,7 @@ export default function UsersPage() {
       
       let usersArray = Object.values(userMap);
       
-      if (sortBy === 'reputation') {
-        usersArray.sort((a, b) => b.reputation - a.reputation);
-      } else if (sortBy === 'newest') {
+      if (sortBy === 'newest') {
         usersArray.sort((a, b) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
@@ -146,12 +143,11 @@ export default function UsersPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => {
-                    setSortBy(e.target.value as 'reputation' | 'newest' | 'name');
+                    setSortBy(e.target.value as 'newest' | 'name');
                     setPage(1);
                   }}
                   className="users-page-sort-select"
                 >
-                  <option value="reputation">Reputation</option>
                   <option value="newest">Newest</option>
                   <option value="name">Name (A-Z)</option>
                 </select>
@@ -221,12 +217,6 @@ export default function UsersPage() {
                           )}
                         </div>
                         <div className="users-card-meta">
-                          <span className="users-card-meta-item">
-                            <svg className="users-card-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                            </svg>
-                            {user.reputation || 0} reputation
-                          </span>
                           {user.questionsCount !== undefined && (
                             <span className="users-card-meta-item">
                               <svg className="users-card-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">

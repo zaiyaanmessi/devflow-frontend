@@ -15,13 +15,21 @@ export default function Navbar() {
       const userData = localStorage.getItem('user');
       const token = localStorage.getItem('token');
       
+      console.log('🔍 Navbar checkUserStatus called');
+      console.log('📦 localStorage user:', userData);
+      
       if (userData && token && userData !== 'undefined' && userData !== 'null') {
         try {
-          setUser(JSON.parse(userData));
-        } catch {
+          const parsedUser = JSON.parse(userData);
+          console.log('✅ Parsed user:', parsedUser);
+          console.log('✅ Reputation:', parsedUser.reputation);
+          setUser(parsedUser);
+        } catch (err) {
+          console.error('❌ Failed to parse user:', err);
           setUser(null);
         }
       } else {
+        console.log('⚠️ No user data or token found');
         setUser(null);
       }
     }
@@ -32,6 +40,10 @@ export default function Navbar() {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    console.log('🎨 Navbar user state updated:', user);
+  }, [user]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -41,14 +53,14 @@ export default function Navbar() {
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
-      router.push(`/search?query=${encodeURIComponent(searchQuery)}`);
+      router.push(`/questions?search=${encodeURIComponent(searchQuery)}`);
       setSearchQuery('');
     }
   };
 
   const handleSearchClick = () => {
     if (searchQuery.trim()) {
-      router.push(`/search?query=${encodeURIComponent(searchQuery)}`);
+      router.push(`/questions?search=${encodeURIComponent(searchQuery)}`);
       setSearchQuery('');
     }
   };
@@ -75,7 +87,7 @@ export default function Navbar() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearch}
                 className="navbar-search-input search-bar-input"
-                placeholder="Search Stack Overflow questions..."
+                placeholder="Search questions..."
                 type="search"
               />
               <button
@@ -110,7 +122,6 @@ export default function Navbar() {
                 {/* User Badge */}
                 <div className="navbar-user-badge">
                   <span className="navbar-username">{user.username}</span>
-                  <span className="navbar-reputation">⭐ {user.reputation || 0}</span>
                 </div>
 
                 {/* Logout */}

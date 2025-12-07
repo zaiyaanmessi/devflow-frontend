@@ -9,7 +9,7 @@ import Sidebar from '@/components/Sidebar';
 
 export default function QuestionsPage() {
   const router = useRouter();
-  const { tag } = router.query;
+  const { tag, search } = router.query;
   const [user, setUser] = useState<User | null>(null);
   const [mounted, setMounted] = useState(false);
   const [questions, setQuestions] = useState<any[]>([]);
@@ -20,6 +20,7 @@ export default function QuestionsPage() {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [filter, setFilter] = useState<'newest' | 'popular' | 'trending' | 'unanswered'>('newest');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string | null>(null);
   const QUESTIONS_PER_PAGE = 10;
 
   useEffect(() => {
@@ -44,13 +45,19 @@ export default function QuestionsPage() {
     } else {
       setSelectedTag(null);
     }
-  }, [tag]);
+    
+    if (search && typeof search === 'string') {
+      setSearchQuery(search);
+    } else {
+      setSearchQuery(null);
+    }
+  }, [tag, search]);
 
   useEffect(() => {
     if (mounted) {
       fetchQuestions();
     }
-  }, [page, mounted, filter, selectedTag]);
+  }, [page, mounted, filter, selectedTag, searchQuery]);
 
   const fetchQuestions = async () => {
     try {
@@ -62,6 +69,10 @@ export default function QuestionsPage() {
 
       if (selectedTag) {
         params.tags = selectedTag;
+      }
+
+      if (searchQuery) {
+        params.search = searchQuery;
       }
 
       if (filter === 'unanswered') {
@@ -157,7 +168,11 @@ export default function QuestionsPage() {
           <div className="questions-page-header">
             <div className="questions-header-row">
               <h1 className="questions-page-title">
-                {selectedTag ? (
+                {searchQuery ? (
+                  <>
+                    Search results for <span className="questions-page-title-tag">"{searchQuery}"</span>
+                  </>
+                ) : selectedTag ? (
                   <>
                     Questions tagged <span className="questions-page-title-tag">[{selectedTag}]</span>
                   </>
@@ -170,10 +185,11 @@ export default function QuestionsPage() {
                   </>
                 )}
               </h1>
-              {selectedTag && (
+              {(selectedTag || searchQuery) && (
                 <button
                   onClick={() => {
                     setSelectedTag(null);
+                    setSearchQuery(null);
                     router.push('/questions', undefined, { shallow: true });
                   }}
                   className="questions-clear-filter-button"
@@ -357,7 +373,6 @@ export default function QuestionsPage() {
                               >
                                 {q.asker.username}
                               </Link>
-                              <span className="questions-card-author-reputation">{q.asker.reputation || 0}</span>
                               <span className="questions-card-author-separator">•</span>
                               <span className="questions-card-author-date">
                                 asked {new Date(q.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
