@@ -28,13 +28,9 @@ export default function Navbar() {
   };
 
   useEffect(() => {
+    checkUserStatus();
     setMounted(true);
-    checkUserStatus();
   }, []);
-
-  useEffect(() => {
-    checkUserStatus();
-  }, [router.asPath]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -59,14 +55,12 @@ export default function Navbar() {
     }
   };
 
-  if (!mounted) return null;
-
   return (
     <nav className="sticky top-0 z-40 bg-slate-800 border-b-2 border-slate-700 shadow-lg shadow-black/20">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center h-[72px]">
-          {/* Logo - Moved slightly to the right */}
-          <Link href="/questions" className="flex items-center navbar-logo">
+          {/* Logo */}
+          <Link href="/" className="flex items-center navbar-logo">
             <span className="text-cyan-400 font-extrabold text-2xl">CodeQ</span>
           </Link>
 
@@ -96,39 +90,59 @@ export default function Navbar() {
           </div>
 
           {/* Right Actions - Right Aligned */}
-          {user && (
-            <div className="flex items-center gap-4 ml-auto">
-              {/* Ask Button - TEXT ONLY, NO BACKGROUND */}
-              <Link
-                href="/ask"
-                className="text-cyan-400 font-semibold hover:text-cyan-300 transition-colors hover:underline underline-offset-4"
-              >
-                Ask Question
-              </Link>
+          <div className="ml-auto flex items-center gap-4">
+            {mounted && user ? (
+              <>
+                {/* Ask Button - TEXT ONLY, NO BACKGROUND */}
+                <Link
+                  href="/ask"
+                  className="text-cyan-400 font-semibold hover:text-cyan-300 transition-colors hover:underline underline-offset-4"
+                >
+                  Ask Question
+                </Link>
 
-              {/* Profile Link - PLAIN TEXT */}
-              <Link
-                href={`/profile/${user._id}`}
-                className="hidden sm:inline text-slate-300 hover:text-white transition-colors hover:underline underline-offset-4"
-              >
-                Profile
-              </Link>
+                {/* Profile Link - PLAIN TEXT */}
+                <Link
+                  href={`/profile/${user._id}`}
+                  className="hidden sm:inline text-slate-300 hover:text-white transition-colors hover:underline underline-offset-4"
+                >
+                  Profile
+                </Link>
 
-              {/* User Badge - LARGER, MORE READABLE */}
-              <div className="flex items-center gap-3 px-5 py-2.5 rounded-lg bg-slate-700/80 border-2 border-slate-600 shadow-lg shadow-black/20">
-                <span className="text-white text-base font-bold">{user.username}</span>
-                <span className="text-cyan-400 text-sm font-bold">⭐ {user.reputation || 0}</span>
-              </div>
+                {/* User Badge - LARGER, MORE READABLE */}
+                <div className="flex items-center gap-3 px-5 py-2.5 rounded-lg bg-slate-700/80 border-2 border-slate-600 shadow-lg shadow-black/20">
+                  <span className="text-white text-base font-bold">{user.username}</span>
+                  <span className="text-cyan-400 text-sm font-bold">⭐ {user.reputation || 0}</span>
+                </div>
 
-              {/* Logout - TEXT ONLY */}
-              <button
-                onClick={handleLogout}
-                className="text-red-400 font-semibold hover:text-red-300 transition-colors hover:underline underline-offset-4"
-              >
-                Logout
-              </button>
-            </div>
-          )}
+                {/* Logout - TEXT ONLY */}
+                <button
+                  onClick={handleLogout}
+                  className="text-red-400 font-semibold hover:text-red-300 transition-colors hover:underline underline-offset-4"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Sign In Link - For Anonymous Users */}
+                <Link
+                  href="/login"
+                  className="text-slate-300 hover:text-white font-semibold transition-colors hover:underline underline-offset-4"
+                >
+                  Sign In
+                </Link>
+
+                {/* Sign Up Button - For Anonymous Users */}
+                <Link
+                  href="/register"
+                  className="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all shadow-md shadow-cyan-500/20 hover:shadow-cyan-500/30"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </nav>

@@ -186,21 +186,32 @@ export default function StudentView({
                   </div>
                 ))}
               </div>
-              <form onSubmit={onAddQuestionComment} className="flex gap-2">
-                <input
-                  type="text"
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Add a comment..."
-                  className="flex-1 px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                />
-                <button
-                  type="submit"
-                  className="bg-slate-700 text-slate-300 px-4 py-1.5 rounded text-sm font-medium hover:bg-slate-600 transition-colors"
-                >
-                  Add comment
-                </button>
-              </form>
+              
+              {/* ✅ PROTECTED: Question Comment Form */}
+              {currentUserId ? (
+                <form onSubmit={onAddQuestionComment} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder="Add a comment..."
+                    className="flex-1 px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-slate-700 text-slate-300 px-4 py-1.5 rounded text-sm font-medium hover:bg-slate-600 transition-colors"
+                  >
+                    Add comment
+                  </button>
+                </form>
+              ) : (
+                <div className="bg-blue-500/20 border-l-4 border-blue-400 text-blue-300 p-3 rounded-r-lg text-sm">
+                  <Link href="/login" className="font-semibold hover:underline">
+                    Sign in
+                  </Link>
+                  {' '}to comment on this question
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -389,29 +400,40 @@ export default function StudentView({
                             </div>
                           ))}
                         </div>
-                        <form
-                          onSubmit={(e) => onAddAnswerComment(answer._id, e)}
-                          className="flex gap-2"
-                        >
-                          <input
-                            type="text"
-                            value={answerCommentText[answer._id] || ''}
-                            onChange={(e) =>
-                              setAnswerCommentText({
-                                ...answerCommentText,
-                                [answer._id]: e.target.value
-                              })
-                            }
-                            placeholder="Add a comment..."
-                            className="flex-1 px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                          />
-                          <button
-                            type="submit"
-                            className="bg-slate-700 text-slate-300 px-4 py-1.5 rounded text-sm font-medium hover:bg-slate-600 transition-colors"
+                        
+                        {/* ✅ PROTECTED: Answer Comment Form */}
+                        {currentUserId ? (
+                          <form
+                            onSubmit={(e) => onAddAnswerComment(answer._id, e)}
+                            className="flex gap-2"
                           >
-                            Add comment
-                          </button>
-                        </form>
+                            <input
+                              type="text"
+                              value={answerCommentText[answer._id] || ''}
+                              onChange={(e) =>
+                                setAnswerCommentText({
+                                  ...answerCommentText,
+                                  [answer._id]: e.target.value
+                                })
+                              }
+                              placeholder="Add a comment..."
+                              className="flex-1 px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                            />
+                            <button
+                              type="submit"
+                              className="bg-slate-700 text-slate-300 px-4 py-1.5 rounded text-sm font-medium hover:bg-slate-600 transition-colors"
+                            >
+                              Add comment
+                            </button>
+                          </form>
+                        ) : (
+                          <div className="bg-blue-500/20 border-l-4 border-blue-400 text-blue-300 p-3 rounded-r-lg text-sm">
+                            <Link href="/login" className="font-semibold hover:underline">
+                              Sign in
+                            </Link>
+                            {' '}to comment on this answer
+                          </div>
+                        )}
                       </div>
                     </>
                   )}

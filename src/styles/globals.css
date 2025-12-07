@@ -43,10 +43,16 @@ body {
   opacity: 0;
 }
 
+/* ⭐ FIXED: Only apply sidebar padding when main has main-with-sidebar class */
 @media (min-width: 1024px) {
   main.main-with-sidebar {
     padding-left: 16rem; /* 256px = w-64 */
   }
+}
+
+/* Main content centering - applies to main without main-with-sidebar */
+main.w-full {
+  width: 100%;
 }
 
 /* Navbar logo padding */
@@ -88,41 +94,6 @@ body {
 @media (min-width: 768px) {
   .question-card {
     padding: 1.5rem; /* md:p-6 */
-  }
-}
-
-/* Page container padding */
-.questions-page-container {
-  padding-left: 1.5rem; /* px-6 */
-  padding-right: 1.5rem;
-  padding-top: 0.5rem; /* Reduced top padding */
-  padding-bottom: 3rem;
-}
-
-@media (min-width: 640px) {
-  .questions-page-container {
-    padding-left: 1rem; /* sm:px-8 */
-    padding-right: 2rem;
-    padding-top: 1rem; /* Reduced top padding */
-    padding-bottom: 4rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .questions-page-container {
-    padding-left: 3rem; /* md:px-12 */
-    padding-right: 3rem;
-    padding-top: 1.5rem; /* Reduced top padding */
-    padding-bottom: 5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .questions-page-container {
-    padding-left: 4rem; /* lg:px-16 */
-    padding-right: 4rem;
-    padding-top: 2rem; /* Reduced top padding */
-    padding-bottom: 6rem;
   }
 }
 

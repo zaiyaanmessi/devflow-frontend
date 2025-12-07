@@ -514,29 +514,31 @@ export default function Profile() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => setIsEditing(true)}
-                className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 text-sm font-medium transition-colors whitespace-nowrap"
-              >
-                Edit profile
-              </button>
-              {(isOwnProfile || currentUserRole === 'admin') && (
-                <div className="bg-slate-700 rounded-lg p-2">
-                  <label className="text-xs font-medium text-slate-300 mb-1 block">Change Role:</label>
-                  <select
-                    value={selectedRole}
-                    onChange={(e) => handleChangeRole(e.target.value)}
-                    disabled={isChangingRole}
-                    className="w-full px-2 py-1.5 bg-slate-600 border border-slate-500 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <option value="user">👨‍🎓 Student</option>
-                    <option value="expert">👨‍🏫 Expert</option>
-                    <option value="admin">👨‍💼 Admin</option>
-                  </select>
-                </div>
-              )}
-            </div>
+<div className="flex flex-col gap-2">
+  {isOwnProfile && (
+    <button
+      onClick={() => setIsEditing(true)}
+      className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 text-sm font-medium transition-colors whitespace-nowrap"
+    >
+      Edit profile
+    </button>
+  )}
+  {(isOwnProfile || currentUserRole === 'admin') && (
+    <div className="bg-slate-700 rounded-lg p-2">
+      <label className="text-xs font-medium text-slate-300 mb-1 block">Change Role:</label>
+      <select
+        value={selectedRole}
+        onChange={(e) => handleChangeRole(e.target.value)}
+        disabled={isChangingRole}
+        className="w-full px-2 py-1.5 bg-slate-600 border border-slate-500 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <option value="user">👨‍🎓 Student</option>
+        <option value="expert">👨‍🏫 Expert</option>
+        <option value="admin">👨‍💼 Admin</option>
+      </select>
+    </div>
+  )}
+</div>
           </div>
 
           {/* Tabs */}

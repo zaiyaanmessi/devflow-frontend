@@ -6,8 +6,8 @@ import Navbar from '@/components/Navbar';
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   
-  // Hide navbar on landing, login, and register pages
-  const hideNavbar = router.pathname === '/' || router.pathname === '/login' || router.pathname === '/register';
+  
+  const hideNavbar = router.pathname === '/login' || router.pathname === '/register';
 
   return (
     <>

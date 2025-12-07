@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import api from '@/services/api';
 import Sidebar from '@/components/Sidebar';
@@ -13,6 +13,8 @@ interface AccordionSection {
 
 export default function AskQuestion() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     body: '',
@@ -61,6 +63,29 @@ export default function AskQuestion() {
       isOpen: false
     }
   ]);
+
+  // ✅ CHECK IF USER IS LOGGED IN
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userData = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+
+      if (!userData || !token) {
+        // Not logged in - redirect to login
+        router.push('/login?redirect=/ask');
+        return;
+      }
+
+      try {
+        setUser(JSON.parse(userData));
+      } catch (err) {
+        console.error('Failed to parse user data:', err);
+        router.push('/login?redirect=/ask');
+        return;
+      }
+    }
+    setIsAuthChecking(false);
+  }, [router]);
 
   const toggleAccordion = (id: string) => {
     setAccordionSections(sections =>
@@ -464,6 +489,28 @@ export default function AskQuestion() {
       setLoading(false);
     }
   };
+
+  // Show loading while checking authentication
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-slate-900 py-8 px-4">
+        <div className="max-w-4xl mx-auto text-center py-16">
+          <div className="text-lg text-slate-400">Checking authentication...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated, this won't render (redirected to login)
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-900 py-8 px-4">
+        <div className="max-w-4xl mx-auto text-center py-16">
+          <div className="text-lg text-slate-400 mb-4">You must be logged in to ask a question</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -99,6 +99,17 @@ export default function QuestionDetail() {
       await fetchQuestion();
     } catch (err: any) {
       console.error('Error creating answer:', err);
+      
+      if (err.response?.status === 401) {
+        setError('Your session has expired. Please log in again.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setTimeout(() => {
+          router.push('/login?redirect=' + router.asPath);
+        }, 1500);
+        return;
+      }
+      
       setError(err.response?.data?.error || 'Failed to post answer');
     } finally {
       setSubmitLoading(false);
@@ -121,6 +132,17 @@ export default function QuestionDetail() {
       setCommentText('');
     } catch (err: any) {
       console.error('Error creating comment:', err);
+      
+      if (err.response?.status === 401) {
+        setError('Your session has expired. Please log in again.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setTimeout(() => {
+          router.push('/login?redirect=' + router.asPath);
+        }, 1500);
+        return;
+      }
+      
       setError(err.response?.data?.error || 'Failed to post comment');
     }
   };
@@ -145,6 +167,17 @@ export default function QuestionDetail() {
       setAnswerCommentText({ ...answerCommentText, [answerId]: '' });
     } catch (err: any) {
       console.error('Error creating comment:', err);
+      
+      if (err.response?.status === 401) {
+        setError('Your session has expired. Please log in again.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setTimeout(() => {
+          router.push('/login?redirect=' + router.asPath);
+        }, 1500);
+        return;
+      }
+      
       setError(err.response?.data?.error || 'Failed to post comment');
     }
   };
@@ -168,6 +201,9 @@ export default function QuestionDetail() {
   };
 
   const handleVoteQuestion = async (value: 1 | -1) => {
+    // ✅ Check if user is logged in first
+    if (!currentUserId) return;
+    
     if (!question) return;
     try {
       const response = await api.post('/votes', {
@@ -182,8 +218,12 @@ export default function QuestionDetail() {
       setError(err.response?.data?.error || 'Failed to vote');
     }
   };
+  
 
   const handleVoteAnswer = async (answerId: string, value: 1 | -1) => {
+    // ✅ Check if user is logged in first
+    if (!currentUserId) return;
+    
     try {
       const response = await api.post('/votes', {
         targetType: 'answer',
@@ -346,7 +386,6 @@ export default function QuestionDetail() {
 
   const handleLockQuestion = async () => {
     try {
-      // TODO: Implement lock question API call
       setError('Lock question feature not yet implemented');
     } catch (err: any) {
       console.error('Error locking question:', err);
@@ -356,7 +395,6 @@ export default function QuestionDetail() {
 
   const handlePinQuestion = async () => {
     try {
-      // TODO: Implement pin question API call
       setError('Pin question feature not yet implemented');
     } catch (err: any) {
       console.error('Error pinning question:', err);
@@ -366,7 +404,6 @@ export default function QuestionDetail() {
 
   const handleVerifyAnswer = async (answerId: string) => {
     try {
-      // TODO: Implement verify answer API call
       setError('Verify answer feature not yet implemented');
     } catch (err: any) {
       console.error('Error verifying answer:', err);
@@ -490,36 +527,51 @@ export default function QuestionDetail() {
           </div>
         )}
 
-        <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-10 sm:p-12 md:p-16 mt-16">
-          <h3 className="text-2xl font-semibold text-white mb-3">Your Answer</h3>
-          <p className="text-sm text-slate-400 mb-6">Share your knowledge and help others solve this problem</p>
-          <form onSubmit={handleAddAnswer}>
-            <textarea
-              value={answerText}
-              onChange={(e) => setAnswerText(e.target.value)}
-              placeholder="Write your answer here... Be detailed and helpful!"
-              className="w-full h-48 px-4 py-3 bg-slate-700/50 border-2 border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 mb-4 transition-all"
-              required
-            />
-            <button
-              type="submit"
-              disabled={submitLoading}
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 font-semibold transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed disabled:shadow-none"
-            >
-              {submitLoading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Posting...
-                </span>
-              ) : (
-                'Post Answer'
-              )}
-            </button>
-          </form>
-        </div>
+        {currentUserId ? (
+          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-10 sm:p-12 md:p-16 mt-16">
+            <h3 className="text-2xl font-semibold text-white mb-3">Your Answer</h3>
+            <p className="text-sm text-slate-400 mb-6">Share your knowledge and help others solve this problem</p>
+            <form onSubmit={handleAddAnswer}>
+              <textarea
+                value={answerText}
+                onChange={(e) => setAnswerText(e.target.value)}
+                placeholder="Write your answer here... Be detailed and helpful!"
+                className="w-full h-48 px-4 py-3 bg-slate-700/50 border-2 border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 mb-4 transition-all"
+                required
+              />
+              <button
+                type="submit"
+                disabled={submitLoading}
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 font-semibold transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed disabled:shadow-none"
+              >
+                {submitLoading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Posting...
+                  </span>
+                ) : (
+                  'Post Answer'
+                )}
+              </button>
+            </form>
+          </div>
+        ) : (
+          <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl shadow-lg shadow-black/20 p-10 sm:p-12 md:p-16 mt-16">
+            <div className="bg-blue-500/20 border-l-4 border-blue-400 text-blue-300 p-6 rounded-r-lg">
+              <h3 className="text-xl font-semibold mb-3">Want to answer this question?</h3>
+              <p className="mb-4">You must be logged in to post an answer</p>
+              <Link 
+                href="/login" 
+                className="inline-block bg-cyan-500 text-white px-6 py-2 rounded-lg hover:bg-cyan-400 font-semibold transition-colors"
+              >
+                Sign in or Create Account
+              </Link>
+            </div>
+          </div>
+        )}
         </div>
       </main>
     </div>
