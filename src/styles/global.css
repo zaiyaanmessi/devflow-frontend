@@ -358,6 +358,85 @@ main.w-full {
   background-color: #1e293b;
 }
 
+/* Validation styles */
+.login-input-error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.login-input-error:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+.login-input-valid {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1) !important;
+}
+
+.login-input-valid:focus {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2) !important;
+}
+
+.login-validation-error {
+  color: #fca5a5;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.login-validation-success {
+  color: #86efac;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.login-password-requirements {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background-color: rgba(51, 65, 85, 0.3);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(71, 85, 105, 0.5);
+}
+
+.login-requirements-title {
+  color: #cbd5e1;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.login-requirements-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.login-requirement-met {
+  color: #86efac;
+  font-size: 0.8125rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.login-requirement-unmet {
+  color: #94a3b8;
+  font-size: 0.8125rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 /* Button container */
 .login-button-container {
   display: flex;

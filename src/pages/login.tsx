@@ -11,6 +11,14 @@ export default function Login() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({
+    email: '',
+    password: '',
+  });
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false,
+  });
 
   // Clear form data on mount to prevent browser autofill
   useEffect(() => {
@@ -20,16 +28,84 @@ export default function Login() {
     });
   }, []);
 
+  // Email validation
+  const validateEmail = (email: string): string => {
+    if (!email) return '';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address';
+    }
+    return '';
+  };
+
+  // Password validation - relaxed requirements
+  const validatePassword = (password: string): string => {
+    if (!password) return '';
+    if (password.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+    if (!/[a-zA-Z]/.test(password)) {
+      return 'Password must contain at least one letter';
+    }
+    if (!/[0-9]/.test(password)) {
+      return 'Password must contain at least one number';
+    }
+    return '';
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
+    });
+
+    // Real-time validation
+    if (name === 'email') {
+      setValidationErrors({
+        ...validationErrors,
+        email: validateEmail(value),
+      });
+    } else if (name === 'password') {
+      setValidationErrors({
+        ...validationErrors,
+        password: validatePassword(value),
+      });
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name } = e.target;
+    setTouched({
+      ...touched,
+      [name]: true,
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // Mark all fields as touched
+    setTouched({
+      email: true,
+      password: true,
+    });
+
+    // Validate all fields
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+
+    setValidationErrors({
+      email: emailError,
+      password: passwordError,
+    });
+
+    // Don't submit if there are validation errors
+    if (emailError || passwordError) {
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -123,11 +199,18 @@ export default function Login() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder="Enter your email"
-                className="login-input"
+                className={`login-input ${touched.email && validationErrors.email ? 'login-input-error' : ''} ${touched.email && !validationErrors.email && formData.email ? 'login-input-valid' : ''}`}
                 autoComplete="off"
                 required
               />
+              {touched.email && validationErrors.email && (
+                <p className="login-validation-error">{validationErrors.email}</p>
+              )}
+              {touched.email && !validationErrors.email && formData.email && (
+                <p className="login-validation-success">✓ Valid email format</p>
+              )}
             </div>
 
             {/* Password */}
@@ -140,11 +223,34 @@ export default function Login() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder="Enter your password"
-                className="login-input"
+                className={`login-input ${touched.password && validationErrors.password ? 'login-input-error' : ''} ${touched.password && !validationErrors.password && formData.password ? 'login-input-valid' : ''}`}
                 autoComplete="new-password"
                 required
               />
+              {touched.password && validationErrors.password && (
+                <p className="login-validation-error">{validationErrors.password}</p>
+              )}
+              {touched.password && !validationErrors.password && formData.password && (
+                <p className="login-validation-success">✓ Password meets all requirements</p>
+              )}
+              {touched.password && formData.password && (
+                <div className="login-password-requirements">
+                  <p className="login-requirements-title">Password must contain:</p>
+                  <ul className="login-requirements-list">
+                    <li className={formData.password.length >= 6 ? 'login-requirement-met' : 'login-requirement-unmet'}>
+                      {formData.password.length >= 6 ? '✓' : '○'} At least 6 characters
+                    </li>
+                    <li className={/[a-zA-Z]/.test(formData.password) ? 'login-requirement-met' : 'login-requirement-unmet'}>
+                      {/[a-zA-Z]/.test(formData.password) ? '✓' : '○'} At least one letter
+                    </li>
+                    <li className={/[0-9]/.test(formData.password) ? 'login-requirement-met' : 'login-requirement-unmet'}>
+                      {/[0-9]/.test(formData.password) ? '✓' : '○'} At least one number
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* Submit Button */}

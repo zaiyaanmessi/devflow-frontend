@@ -151,12 +151,13 @@ export default function StudentView({
             {/* Tags */}
             <div className="question-tags-container">
               {question.tags?.map((tag: string) => (
-                <span
+                <Link
                   key={tag}
+                  href={`/questions?tag=${encodeURIComponent(tag)}`}
                   className="question-tag-item"
                 >
                   {tag}
-                </span>
+                </Link>
               ))}
             </div>
 

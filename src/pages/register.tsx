@@ -13,6 +13,16 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false,
+    confirmPassword: false,
+  });
 
   // Clear form data on mount to prevent browser autofill
   useEffect(() => {
@@ -24,19 +34,100 @@ export default function Register() {
     });
   }, []);
 
+  // Email validation
+  const validateEmail = (email: string): string => {
+    if (!email) return '';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address';
+    }
+    return '';
+  };
+
+  // Password validation - relaxed requirements
+  const validatePassword = (password: string): string => {
+    if (!password) return '';
+    if (password.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+    if (!/[a-zA-Z]/.test(password)) {
+      return 'Password must contain at least one letter';
+    }
+    if (!/[0-9]/.test(password)) {
+      return 'Password must contain at least one number';
+    }
+    return '';
+  };
+
+  // Confirm password validation
+  const validateConfirmPassword = (confirmPassword: string, password: string): string => {
+    if (!confirmPassword) return '';
+    if (confirmPassword !== password) {
+      return 'Passwords do not match';
+    }
+    return '';
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
+    });
+
+    // Real-time validation
+    if (name === 'email') {
+      setValidationErrors({
+        ...validationErrors,
+        email: validateEmail(value),
+      });
+    } else if (name === 'password') {
+      const passwordError = validatePassword(value);
+      setValidationErrors({
+        ...validationErrors,
+        password: passwordError,
+        confirmPassword: validateConfirmPassword(formData.confirmPassword, value),
+      });
+    } else if (name === 'confirmPassword') {
+      setValidationErrors({
+        ...validationErrors,
+        confirmPassword: validateConfirmPassword(value, formData.password),
+      });
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name } = e.target;
+    setTouched({
+      ...touched,
+      [name]: true,
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // Mark all fields as touched
+    setTouched({
+      email: true,
+      password: true,
+      confirmPassword: true,
+    });
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+    // Validate all fields
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+    const confirmPasswordError = validateConfirmPassword(formData.confirmPassword, formData.password);
+
+    setValidationErrors({
+      email: emailError,
+      password: passwordError,
+      confirmPassword: confirmPasswordError,
+    });
+
+    // Don't submit if there are validation errors
+    if (emailError || passwordError || confirmPasswordError) {
       return;
     }
 
@@ -151,11 +242,18 @@ export default function Register() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder="Enter your email"
-                className="register-input"
+                className={`register-input ${touched.email && validationErrors.email ? 'login-input-error' : ''} ${touched.email && !validationErrors.email && formData.email ? 'login-input-valid' : ''}`}
                 autoComplete="off"
                 required
               />
+              {touched.email && validationErrors.email && (
+                <p className="login-validation-error">{validationErrors.email}</p>
+              )}
+              {touched.email && !validationErrors.email && formData.email && (
+                <p className="login-validation-success">✓ Valid email format</p>
+              )}
             </div>
 
             {/* Password */}
@@ -168,11 +266,34 @@ export default function Register() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder="Create a password"
-                className="register-input"
+                className={`register-input ${touched.password && validationErrors.password ? 'login-input-error' : ''} ${touched.password && !validationErrors.password && formData.password ? 'login-input-valid' : ''}`}
                 autoComplete="new-password"
                 required
               />
+              {touched.password && validationErrors.password && (
+                <p className="login-validation-error">{validationErrors.password}</p>
+              )}
+              {touched.password && !validationErrors.password && formData.password && (
+                <p className="login-validation-success">✓ Password meets all requirements</p>
+              )}
+              {touched.password && formData.password && (
+                <div className="login-password-requirements">
+                  <p className="login-requirements-title">Password must contain:</p>
+                  <ul className="login-requirements-list">
+                    <li className={formData.password.length >= 6 ? 'login-requirement-met' : 'login-requirement-unmet'}>
+                      {formData.password.length >= 6 ? '✓' : '○'} At least 6 characters
+                    </li>
+                    <li className={/[a-zA-Z]/.test(formData.password) ? 'login-requirement-met' : 'login-requirement-unmet'}>
+                      {/[a-zA-Z]/.test(formData.password) ? '✓' : '○'} At least one letter
+                    </li>
+                    <li className={/[0-9]/.test(formData.password) ? 'login-requirement-met' : 'login-requirement-unmet'}>
+                      {/[0-9]/.test(formData.password) ? '✓' : '○'} At least one number
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* Confirm Password */}
@@ -185,11 +306,18 @@ export default function Register() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder="Confirm your password"
-                className="register-input"
+                className={`register-input ${touched.confirmPassword && validationErrors.confirmPassword ? 'login-input-error' : ''} ${touched.confirmPassword && !validationErrors.confirmPassword && formData.confirmPassword ? 'login-input-valid' : ''}`}
                 autoComplete="new-password"
                 required
               />
+              {touched.confirmPassword && validationErrors.confirmPassword && (
+                <p className="login-validation-error">{validationErrors.confirmPassword}</p>
+              )}
+              {touched.confirmPassword && !validationErrors.confirmPassword && formData.confirmPassword && (
+                <p className="login-validation-success">✓ Passwords match</p>
+              )}
             </div>
 
             {/* Submit Button */}
