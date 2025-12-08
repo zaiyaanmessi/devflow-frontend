@@ -174,7 +174,7 @@ export default function Login() {
                   <span className="login-team-member-name">Zaiyaan Najam</span>
                 </div>
                 <div className="login-team-member-item">
-                  <span className="login-team-member-name">Dheeraj Pinjala</span>
+                  <span className="login-team-member-name">Dheeraaj Pinjala</span>
                 </div>
               </div>
             </div>
