@@ -14,6 +14,7 @@ This document outlines the different powers and permissions for each user role i
 - ✅ Delete their own questions
 - ✅ Edit their own answers
 - ✅ Delete their own answers
+
 - ✅ Delete their own comments
 
 **Restrictions:**

@@ -309,48 +309,7 @@ export default function Profile() {
             <h1 className="profile-detail-edit-title">Public information</h1>
             
             <div className="profile-detail-edit-grid">
-              {/* Left Column - Settings Navigation */}
-              <div className="profile-detail-edit-sidebar">
-                <div className="profile-detail-edit-settings-section">
-                  <div>
-                    <h3 className="profile-detail-edit-settings-group-title">Email Settings</h3>
-                    <ul className="profile-detail-edit-settings-list">
-                      <li><a href="#" className="profile-detail-edit-settings-link cyan">Edit email settings</a></li>
-                      <li><a href="#" className="profile-detail-edit-settings-link">Tag watching & ignoring</a></li>
-                      <li><a href="#" className="profile-detail-edit-settings-link">Community digests</a></li>
-                      <li><a href="#" className="profile-detail-edit-settings-link">Question subscriptions</a></li>
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h3 className="profile-detail-edit-settings-group-title">Site Settings</h3>
-                    <ul className="profile-detail-edit-settings-list">
-                      <li><a href="#" className="profile-detail-edit-settings-link">Preferences</a></li>
-                      <li><a href="#" className="profile-detail-edit-settings-link">Flair</a></li>
-                      <li><a href="#" className="profile-detail-edit-settings-link">Hide communities</a></li>
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h3 className="profile-detail-edit-settings-group-title">Access</h3>
-                    <ul className="profile-detail-edit-settings-list">
-                      <li><a href="#" className="profile-detail-edit-settings-link">Collectives</a></li>
-                      <li><a href="#" className="profile-detail-edit-settings-link">Logins</a></li>
-                      <li><a href="#" className="profile-detail-edit-settings-link">Data dump access</a></li>
-                      <li><a href="#" className="profile-detail-edit-settings-link">RSS feeds</a></li>
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h3 className="profile-detail-edit-settings-group-title">API</h3>
-                    <ul className="profile-detail-edit-settings-list">
-                      <li><a href="#" className="profile-detail-edit-settings-link">Authorized applications</a></li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column - Profile Edit Form */}
+              {/* Profile Edit Form */}
               <div className="profile-detail-edit-content">
                 <form onSubmit={handleUpdateProfile} className="profile-detail-edit-form">
                   {/* Profile Image */}
