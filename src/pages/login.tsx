@@ -164,6 +164,44 @@ export default function Login() {
               <p className="login-feature-text">Connect with the community</p>
             </div>
           </div>
+
+          {/* Team Information */}
+          <div className="login-team-info">
+            <div className="login-team-section">
+              <h3 className="login-team-title">Team Members</h3>
+              <div className="login-team-members">
+                <div className="login-team-member-item">
+                  <span className="login-team-member-name">Zaiyaan Najam</span>
+                </div>
+                <div className="login-team-member-item">
+                  <span className="login-team-member-name">Dheeraj Pinjala</span>
+                </div>
+              </div>
+            </div>
+            <div className="login-repo-section">
+              <h3 className="login-repo-title">Repository Links</h3>
+              <div className="login-repo-links">
+                <a 
+                  href="https://github.com/zaiyaanmessi/devflow-frontend" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="login-repo-link"
+                >
+                  <span className="login-repo-link-text">Frontend Repository</span>
+                  <span className="login-repo-link-arrow">→</span>
+                </a>
+                <a 
+                  href="https://github.com/zaiyaanmessi/devflow-backend" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="login-repo-link"
+                >
+                  <span className="login-repo-link-text">Backend Repository</span>
+                  <span className="login-repo-link-arrow">→</span>
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
