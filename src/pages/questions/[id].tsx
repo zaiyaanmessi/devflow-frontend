@@ -213,6 +213,12 @@ export default function QuestionDetail() {
     }
     if (!question) return;
     
+    // Check if user is trying to vote on their own question
+    if (question.asker._id === currentUserId || question.asker._id?.toString() === currentUserId?.toString()) {
+      setError('You cannot vote on your own question');
+      return;
+    }
+    
     try {
       const endpoint = value === 1 ? 'upvote' : 'downvote';
       const response = await api.post(`/questions/${question._id}/${endpoint}`);
@@ -236,6 +242,13 @@ export default function QuestionDetail() {
   const handleVoteAnswer = async (answerId: string, value: 1 | -1) => {
     if (!currentUserId) {
       setError('You must be logged in to vote');
+      return;
+    }
+    
+    // Find the answer to check if user is the answerer
+    const answer = answers.find((ans) => ans._id === answerId);
+    if (answer && (answer.answerer._id === currentUserId || answer.answerer._id?.toString() === currentUserId?.toString())) {
+      setError('You cannot vote on your own answer');
       return;
     }
     
