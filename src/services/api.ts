@@ -21,8 +21,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Just pass the error through, don't auto-clear auth
-    // Components will handle 401 errors appropriately
+
     return Promise.reject(error);
   }
 );
